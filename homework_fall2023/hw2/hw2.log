@@ -1,0 +1,899 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025/Debian) (preloaded format=pdflatex 2025.10.26)  28 OCT 2025 15:46
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**"/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex"
+(/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex
+LaTeX2e <2025-06-01> patch level 1
+L3 programming layer <2025-09-02>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size12.clo
+File: size12.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count275
+\c@section=\count276
+\c@subsection=\count277
+\c@subsubsection=\count278
+\c@paragraph=\count279
+\c@subparagraph=\count280
+\c@figure=\count281
+\c@table=\count282
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen148
+) (/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2025/06/16 v2.17y AMS math features
+\@mathmargin=\skip51
+
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+Package: amstext 2024/11/17 v2.01 AMS text
+ (/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks17
+\ex@=\dimen149
+)) (/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen150
+) (/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty
+Package: amsopn 2022/04/08 v2.04 operator names
+)
+\inf@bad=\count283
+LaTeX Info: Redefining \frac on input line 233.
+\uproot@=\count284
+\leftroot@=\count285
+LaTeX Info: Redefining \overline on input line 398.
+LaTeX Info: Redefining \colon on input line 409.
+\classnum@=\count286
+\DOTSCASE@=\count287
+LaTeX Info: Redefining \ldots on input line 495.
+LaTeX Info: Redefining \dots on input line 498.
+LaTeX Info: Redefining \cdots on input line 619.
+\Mathstrutbox@=\box53
+\strutbox@=\box54
+LaTeX Info: Redefining \big on input line 721.
+LaTeX Info: Redefining \Big on input line 722.
+LaTeX Info: Redefining \bigg on input line 723.
+LaTeX Info: Redefining \Bigg on input line 724.
+\big@size=\dimen151
+LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
+\macc@depth=\count288
+LaTeX Info: Redefining \bmod on input line 904.
+LaTeX Info: Redefining \pmod on input line 909.
+LaTeX Info: Redefining \smash on input line 939.
+LaTeX Info: Redefining \relbar on input line 969.
+LaTeX Info: Redefining \Relbar on input line 970.
+\c@MaxMatrixCols=\count289
+\dotsspace@=\muskip17
+\c@parentequation=\count290
+\dspbrk@lvl=\count291
+\tag@help=\toks18
+\row@=\count292
+\column@=\count293
+\maxfields@=\count294
+\andhelp@=\toks19
+\eqnshift@=\dimen152
+\alignsep@=\dimen153
+\tagshift@=\dimen154
+\tagwidth@=\dimen155
+\totwidth@=\dimen156
+\lineht@=\dimen157
+\@envbody=\toks20
+\multlinegap=\skip52
+\multlinetaggap=\skip53
+\mathdisplay@stack=\toks21
+LaTeX Info: Redefining \[ on input line 2949.
+LaTeX Info: Redefining \] on input line 2950.
+) (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2013/01/14 v3.01 AMS font symbols
+ (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
+\symAMSa=\mathgroup4
+\symAMSb=\mathgroup5
+LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
+)) (/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+ (/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks22
+) (/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+ (/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+) (/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 106.
+ (/usr/share/texlive/texmf-dist/tex/latex/graphics-def/pdftex.def
+File: pdftex.def 2024/04/13 v1.2c Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen158
+\Gin@req@width=\dimen159
+) (/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+ (/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+ (/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2024/12/12 v1.0g TeX engine tests
+))
+\Gm@cnth=\count295
+\Gm@cntv=\count296
+\c@Gm@tempcnt=\count297
+\Gm@bindingoffset=\dimen160
+\Gm@wd@mp=\dimen161
+\Gm@odd@mp=\dimen162
+\Gm@even@mp=\dimen163
+\Gm@layoutwidth=\dimen164
+\Gm@layoutheight=\dimen165
+\Gm@layouthoffset=\dimen166
+\Gm@layoutvoffset=\dimen167
+\Gm@dimlist=\toks23
+) (/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+File: l3backend-pdftex.def 2025-06-09 L3 backend support: PDF output (pdfTeX)
+\l__color_backend_stack_int=\count298
+) (./hw2.aux)
+\openout1 = `hw2.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
+LaTeX Font Info:    ... okay on input line 16.
+ (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count299
+\scratchdimen=\dimen168
+\scratchbox=\box55
+\nofMPsegments=\count300
+\nofMParguments=\count301
+\everyMPshowfont=\toks24
+\MPscratchCnt=\count302
+\MPscratchDim=\dimen169
+\MPnumerator=\count303
+\makeMPintoPDFobject=\count304
+\everyMPtoPDFconversion=\toks25
+) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
+ (/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
+))
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+*geometry* verbose mode - [ preamble ] result:
+* driver: pdftex
+* paper: a4paper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(72.26999pt, 452.9679pt, 72.26999pt)
+* v-part:(T,H,B)=(72.26999pt, 700.50687pt, 72.26999pt)
+* \paperwidth=597.50787pt
+* \paperheight=845.04684pt
+* \textwidth=452.9679pt
+* \textheight=700.50687pt
+* \oddsidemargin=0.0pt
+* \evensidemargin=0.0pt
+* \topmargin=-37.0pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=12.0pt
+* \footskip=30.0pt
+* \marginparwidth=35.0pt
+* \marginparsep=10.0pt
+* \columnsep=10.0pt
+* \skip\footins=10.8pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/0.jpg' not found on input line 28.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:28: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/0.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.28 .../Gt4vUT5/localstore/4mdindikvassets/0.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+Overfull \hbox (54.04803pt too wide) in paragraph at lines 34--35
+\OT1/cmr/m/n/12 lines. Starter code https: //github.com/berkeleydeeprlcourse/homework[]fal12023/tree/master/hw2 
+ []
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/1.jpg' not found on input line 40.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:40: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/1.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.40 .../Gt4vUT5/localstore/4mdindikvassets/1.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Overfull \hbox (170.58148pt too wide) in paragraph at lines 46--47
+\OT1/cmr/m/n/12 setup guide here: https: //github.com/berkeleydeeprlcourse/homework[]fal12023/blob/main/hw2/google[]cloud/README
+ []
+
+
+
+[1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/2.jpg' not found on input line 56.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:56: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/2.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.56 .../Gt4vUT5/localstore/4mdindikvassets/2.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/3.jpg' not found on input line 72.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:72: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/3.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.72 .../Gt4vUT5/localstore/4mdindikvassets/3.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/4.jpg' not found on input line 80.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:80: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/4.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.80 .../Gt4vUT5/localstore/4mdindikvassets/4.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/5.jpg' not found on input line 88.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:88: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/5.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.88 .../Gt4vUT5/localstore/4mdindikvassets/5.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:94: Undefined control sequence.
+l.94 ...og m9(T)r(7)dr.    —\_t INT lage a. (-\e
+                                                   ly)
+The control sequence at the end of the top line
+of your error message was never \def'ed. If you have
+misspelled it (e.g., `\hobx'), type `I' and the correct
+spelling (e.g., `I\hbox'). Otherwise just continue,
+and I'll forget about whatever was undefined.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/6.jpg' not found on input line 100.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:100: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/6.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.100 ...Gt4vUT5/localstore/4mdindikvassets/6.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 114.
+(/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 2024/11/19 v2.5n Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 114.
+
+
+[2]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/7.jpg' not found on input line 120.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:120: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/7.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.120 ...Gt4vUT5/localstore/4mdindikvassets/7.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[3]
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:134: LaTeX Error: Command \guillemetright unavailable in encoding OT1.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.134 ...o-go:”    N T-1  1  VoI(0) \& — wo »
+                                                   Vo log m9 (aiz|sit) (So o...
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/8.jpg' not found on input line 140.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:140: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/8.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.140 ...Gt4vUT5/localstore/4mdindikvassets/8.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/9.jpg' not found on input line 148.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:148: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/9.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.148 ...Gt4vUT5/localstore/4mdindikvassets/9.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/10.jpg' not found on input line 160.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:160: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/10.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.160 ...t4vUT5/localstore/4mdindikvassets/10.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[4]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/11.jpg' not found on input line 188.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:188: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/11.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.188 ...t4vUT5/localstore/4mdindikvassets/11.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/12.jpg' not found on input line 200.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:200: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/12.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.200 ...t4vUT5/localstore/4mdindikvassets/12.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/13.jpg' not found on input line 212.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:212: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/13.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.212 ...t4vUT5/localstore/4mdindikvassets/13.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[5]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/14.jpg' not found on input line 228.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:228: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/14.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.228 ...t4vUT5/localstore/4mdindikvassets/14.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[6]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/15.jpg' not found on input line 248.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:248: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/15.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.248 ...t4vUT5/localstore/4mdindikvassets/15.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/16.jpg' not found on input line 264.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:264: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/16.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.264 ...t4vUT5/localstore/4mdindikvassets/16.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/17.jpg' not found on input line 280.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:280: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/17.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.280 ...t4vUT5/localstore/4mdindikvassets/17.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[7]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/18.jpg' not found on input line 292.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:292: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/18.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.292 ...t4vUT5/localstore/4mdindikvassets/18.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[8]
+
+[9]
+Overfull \hbox (0.51239pt too wide) in paragraph at lines 342--343
+[]\OT1/cmr/m/n/12 Run the fol-low-ing com-mands: # No base-line python cs285/scripts/run[]hw2.py --env[]name
+ []
+
+
+
+[10]
+
+[11]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/19.jpg' not found on input line 380.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:380: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/19.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.380 ...t4vUT5/localstore/4mdindikvassets/19.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[12]
+
+[13]
+
+[14]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/20.jpg' not found on input line 428.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:428: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/20.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.428 ...t4vUT5/localstore/4mdindikvassets/20.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/21.jpg' not found on input line 436.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:436: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/21.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.436 ...t4vUT5/localstore/4mdindikvassets/21.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[15]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/22.jpg' not found on input line 460.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:460: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/22.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.460 ...t4vUT5/localstore/4mdindikvassets/22.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/23.jpg' not found on input line 472.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:472: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/23.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.472 ...t4vUT5/localstore/4mdindikvassets/23.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[16]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/24.jpg' not found on input line 484.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:484: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/24.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.484 ...t4vUT5/localstore/4mdindikvassets/24.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/25.jpg' not found on input line 496.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:496: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/25.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.496 ...t4vUT5/localstore/4mdindikvassets/25.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[17]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/26.jpg' not found on input line 508.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:508: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/26.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.508 ...t4vUT5/localstore/4mdindikvassets/26.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/27.jpg' not found on input line 536.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:536: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/27.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.536 ...t4vUT5/localstore/4mdindikvassets/27.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[18]
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/28.jpg' not found on input line 568.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:568: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/28.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.568 ...t4vUT5/localstore/4mdindikvassets/28.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+LaTeX Warning: File `/convert/Gt4vUT5/localstore/4mdindikvassets/29.jpg' not found on input line 576.
+
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:576: Package pdftex.def Error: File `/convert/Gt4vUT5/localstore/4mdindikvassets/29.jpg' not found: using draft setting.
+
+See the pdftex.def package documentation for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.576 ...t4vUT5/localstore/4mdindikvassets/29.jpg}
+                                                  
+Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[19]
+
+/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023/hw2/hw2.tex:586: LaTeX Error: Command \guillemetright unavailable in encoding OT1.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.586 ...rminal.    submit .zip   * run\_logs   »
+                                                   qi\_lb\_rtg na CartPole-v...
+Your command was ignored.
+Type  I <command> <return>  to replace it with another command,
+or  <return>  to continue without it.
+
+
+
+[20]
+
+[21]
+
+[22]
+
+[23]
+
+[24]
+
+[25]
+
+[26]
+
+[27]
+
+[28]
+
+[29]
+
+[30] (./hw2.aux)
+ ***********
+LaTeX2e <2025-06-01> patch level 1
+L3 programming layer <2025-09-02>
+ ***********
+ ) 
+Here is how much of TeX's memory you used:
+ 3963 strings out of 467748
+ 97975 string characters out of 5429607
+ 452722 words of memory out of 5000000
+ 32663 multiletter control sequences out of 15000+600000
+ 628782 words of font info for 44 fonts, out of 8000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 57i,5n,65p,1727b,282s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfrm1200.pfb>
+Output written on hw2.pdf (30 pages, 77392 bytes).
+PDF statistics:
+ 121 PDF objects out of 1000 (max. 8388607)
+ 80 compressed objects within 1 object stream
+ 0 named destinations out of 1000 (max. 500000)
+ 1 words of extra memory for PDF output out of 10000 (max. 10000000)
+

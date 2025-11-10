@@ -1,0 +1,796 @@
+\documentclass[11pt]{article}
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{parskip}
+\usepackage{bm}
+\usepackage{titlesec}
+\usepackage{graphicx}
+
+
+% --------------------
+\usepackage{fontspec}       % 字体设置
+\usepackage{luatexja}       % 中文支持
+\usepackage{luatexja-fontspec}
+\setmainjfont{Noto Sans CJK SC}  % 简体中文字体
+
+% --- math helpers ---
+\newcommand{\E}{\mathbb{E}}        % expectation
+\newcommand{\Var}{\mathrm{Var}}    % variance (如果用得到)
+\newcommand{\R}{\mathbb{R}}        % real numbers
+
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+\title{Berkeley CS 285: Deep Reinforcement Learning, Decision Making, and Control\\[4pt]
+Fall 2023\\[4pt]Assignment 1 -- Imitation Learning}
+\author{}
+\date{Due September 11, 11:59 pm}
+
+\begin{document}
+\maketitle
+
+\section{Goal}
+The goal of this assignment is to gain familiarity with imitation learning, including direct behavioral cloning
+and the DAgger algorithm. In lieu of a human demonstrator, demonstrations will be provided via an expert
+policy that we have trained for you. Your goals will be to set up behavior cloning and DAgger, and compare
+their performance on a few different continuous control tasks from the OpenAI Gym benchmark suite. Turn
+in your report and code as described in Section 7
+
+Starter code:\\
+\url{https://github.com/berkeleydeeprlcourse/homework_fall2023/tree/main/hw1}.  
+
+You have the option of running the code either on Google Colab or on your own machine. Please refer to the
+README for more information on setup.
+
+Note: The Colab is only used as a source of GPU compute, so you will be editing the same code regardless
+of what option you choose. For this assignment, since GPU will not be necessary, we strongly recommend
+running the code locally to gain some familiarity with installing the necessary packages. This will be extremely
+beneficial for later homeworks, so you can run experiments in parallel.
+If you are running locally we strongly recommend you use Conda to manage your Python environment and
+dependencies. Instructions for installing Conda and setting up an environment are included.
+
+\section{Analysis}
+Consider imitation learning within a discrete MDP of horizon $T$ and an expert policy $\pi^*$.  
+We gather expert demonstrations from $\pi^*$ and fit an imitation policy $\pi_\theta$ to these trajectories so that
+\begin{align}
+\E_{p_{\pi^*}(s)}\big[\pi_\theta(a\ne \pi^*(s)\mid s)\big]
+&=\frac{1}{T}\sum_{t=1}^T
+\E_{p_{\pi^*}(s_t)}\big[\pi_\theta(a_t\ne \pi^*(s_t)\mid s_t)\big]
+\le \varepsilon.
+\end{align}
+That is, the expected likelihood that the learned policy $\pi_\theta$ disagrees with $\pi^*$ on states drawn from the expert distribution $p_{\pi^*}$ is at most $\varepsilon$.
+
+For convenience, the notation $p_{\pi}(s_t)$ indicates the state distribution under policy $\pi$ at time step $t$, while $p_{\pi}(s)$ indicates the state marginal of $\pi$ across time steps, unless indicated otherwise.
+
+\begin{enumerate}[label=\arabic*.]
+\item Show that
+\[
+\sum_{s_t}\big|p_{\pi_\theta}(s_t)-p_{\pi^*}(s_t)\big|\le 2T\varepsilon.
+\]
+\textbf{Hint:} In lecture we showed a similar inequality under the stronger assumption
+$\pi_\theta(a_t\ne\pi^*(s_t)\mid s_t)\le\varepsilon$ for every $s_t\in\mathrm{supp}(p_{\pi^*})$.  
+Try converting the inequality above into an expectation over $p_{\pi^*}$ and apply a union bound.
+
+\textbf{Solution.}
+Assume
+\[
+\frac{1}{T}\sum_{t=1}^{T}\E_{s_t\sim p_{\pi^*}(s_t)}\big[\pi_\theta(a_t\ne \pi^*(s_t)\mid s_t)\big]\le \varepsilon,
+\qquad\text{i.e.,}\quad \E_{s\sim p_{\pi^*}}[\pi_\theta(a\ne \pi^*(s)\mid s)]\le \varepsilon.
+\]
+For any policy $\pi$ the state distribution satisfies
+\[
+p_\pi(s_t)=\sum_{s_{t-1}} p_\pi(s_{t-1})\,P_\pi(s_t\mid s_{t-1}),\qquad
+P_\pi(s_t\mid s_{t-1})=\sum_{a_{t-1}} P(s_t\mid s_{t-1},a_{t-1})\,\pi(a_{t-1}\mid s_{t-1}).
+\]
+Hence
+\begin{align*}
+p_{\pi_\theta}(s_t)-p_{\pi^*}(s_t)
+&=\sum_{s_{t-1}}\!\big(p_{\pi_\theta}(s_{t-1})-p_{\pi^*}(s_{t-1})\big)\,P_{\pi_\theta}(s_t\mid s_{t-1}) \\
+&\quad + \sum_{s_{t-1}} p_{\pi^*}(s_{t-1})\big(P_{\pi_\theta}(s_t\mid s_{t-1})-P_{\pi^*}(s_t\mid s_{t-1})\big).
+\end{align*}
+Taking $\ell_1$ over $s_t$ and using triangle inequality and $\sum_{s_t}P(\cdot)=1$ gives
+\begin{align}
+\label{eq:master}
+\sum_{s_t}\!\big|p_{\pi_\theta}(s_t)-p_{\pi^*}(s_t)\big|
+\le \sum_{s_{t-1}}\!\big|p_{\pi_\theta}(s_{t-1})-p_{\pi^*}(s_{t-1})\big|
++ \sum_{s_{t-1}} p_{\pi^*}(s_{t-1})\,\Xi(s_{t-1}),
+\end{align}
+where
+\[
+\Xi(s_{t-1})
+:=\sum_{s_t}\!\big|P_{\pi_\theta}(s_t\mid s_{t-1})-P_{\pi^*}(s_t\mid s_{t-1})\big|.
+\]
+Expand the transition difference:
+\[
+P_{\pi_\theta}(s_t\mid s_{t-1})-P_{\pi^*}(s_t\mid s_{t-1})
+=\sum_{a_{t-1}} P(s_t\mid s_{t-1},a_{t-1})\big(\pi_\theta(a_{t-1}\mid s_{t-1})-\pi^*(a_{t-1}\mid s_{t-1})\big).
+\]
+Therefore,
+\[
+\Xi(s_{t-1})
+\le \sum_{a_{t-1}}\big|\pi_\theta(a_{t-1}\mid s_{t-1})-\pi^*(a_{t-1}\mid s_{t-1})\big|.
+\]
+For any two distributions $p,q$ over the same finite action set,
+\[
+\sum_a|p(a)-q(a)|
+=2\!\left(1-\sum_a \min\{p(a),q(a)\}\right)
+\le 2\!\left(1-\sum_a p(a)q(a)\right)
+=2\,\Pr_{a\sim p,\ a^*\sim q}[a\ne a^*].
+\]
+Applying this with $p=\pi_\theta(\cdot\mid s_{t-1})$ and $q=\pi^*(\cdot\mid s_{t-1})$ and averaging over
+$s_{t-1}\sim p_{\pi^*}$ yields
+\[
+\sum_{s_{t-1}} p_{\pi^*}(s_{t-1})\,\Xi(s_{t-1})
+\le 2\,\E_{s_{t-1}\sim p_{\pi^*}}\big[\pi_\theta(a_{t-1}\ne \pi^*(s_{t-1})\mid s_{t-1})\big]
+\le 2\varepsilon.
+\]
+Let $\Delta_t:=\sum_{s_t}|p_{\pi_\theta}(s_t)-p_{\pi^*}(s_t)|$. Plugging the bound above into \eqref{eq:master} gives
+\[
+\Delta_t \;\le\; \Delta_{t-1}+2\varepsilon,\qquad \Delta_0=0.
+\]
+By induction, $\Delta_t\le 2t\,\varepsilon$. In particular, for any $t\le T$,
+\[
+\sum_{s_t}\big|p_{\pi_\theta}(s_t)-p_{\pi^*}(s_t)\big| \;\le\; 2t\varepsilon \;\le\; 2T\varepsilon.
+\]
+
+
+
+\item Consider the expected return of the learned policy $\pi_{\theta}$ for a state-dependent reward $r(s_t)$, assume the reward is bounded, $|r(s_t)|\le R_{\max}$.
+\[
+J(\pi)=\sum_{t=1}^T\E_{p_\pi(s_t)}[r(s_t)],
+\]
+
+  \begin{enumerate}[label=(\alph*)]
+  \item Show that $J(\pi^*)-J(\pi_\theta)=O(T\varepsilon)$ when reward depends only on the last state, i.e.\ $r(s_t)=0$ for all $t<T$.
+  \item Show that $J(\pi^*)-J(\pi_\theta)=O(T^2\varepsilon)$ for an arbitrary rewards.
+  \end{enumerate}
+\end{enumerate}
+\textbf{Solution.}
+We define the expected return as
+\[
+J(\pi)=\sum_{t=1}^{T}\mathbb{E}_{s_t\sim p_\pi}[r(s_t)].
+\]
+Then
+\[
+J(\pi^*)-J(\pi_\theta)
+=\sum_{t=1}^{T}\Big(\mathbb{E}_{s_t\sim p_{\pi^*}}[r(s_t)]-\mathbb{E}_{s_t\sim p_{\pi_\theta}}[r(s_t)]\Big)
+=\sum_{t=1}^{T}\sum_{s_t}\big(p_{\pi^*}(s_t)-p_{\pi_\theta}(s_t)\big)r(s_t).
+\]
+
+\noindent\textbf{(a)} When $r(s_t)=0$ for all $t<T$, only the final step contributes:
+\[
+J(\pi^*)-J(\pi_\theta)
+=\sum_{s_T}\big(p_{\pi^*}(s_T)-p_{\pi_\theta}(s_T)\big)r(s_T).
+\]
+Taking the absolute value and using $|r(s_T)|\le R_{\max}$,
+\[
+|J(\pi^*)-J(\pi_\theta)|
+\le R_{\max}\sum_{s_T}|p_{\pi^*}(s_T)-p_{\pi_\theta}(s_T)|.
+\]
+From the previous result $\sum_{s_t}|p_{\pi^*}(s_t)-p_{\pi_\theta}(s_t)|\le 2T\varepsilon$,
+\[
+|J(\pi^*)-J(\pi_\theta)| \le 2R_{\max}T\varepsilon = O(T\varepsilon).
+\]
+
+\noindent\textbf{(b)} For an arbitrary reward, we have
+\[
+J(\pi^*)-J(\pi_\theta)
+=\sum_{t=1}^{T}\sum_{s_t}\big(p_{\pi^*}(s_t)-p_{\pi_\theta}(s_t)\big)r(s_t).
+\]
+Taking absolute values and using $|r(s_t)|\le R_{\max}$,
+\[
+|J(\pi^*)-J(\pi_\theta)|
+\le R_{\max}\sum_{t=1}^{T}\sum_{s_t}|p_{\pi^*}(s_t)-p_{\pi_\theta}(s_t)|.
+\]
+By the previous bound $\sum_{s_t}|p_{\pi^*}(s_t)-p_{\pi_\theta}(s_t)|\le 2t\varepsilon$,
+\[
+|J(\pi^*)-J(\pi_\theta)|
+\le R_{\max}\sum_{t=1}^{T}2t\varepsilon
+=2R_{\max}\varepsilon\sum_{t=1}^{T}t
+=2R_{\max}\varepsilon\frac{T(T+1)}{2}
+=R_{\max}T(T+1)\varepsilon
+=O(T^2\varepsilon).
+\]
+
+
+\section{Editing Code}
+The starter code provides an expert policy for each of the MuJoCo tasks in OpenAI Gym. Fill in the blanks
+in the code marked with \texttt{TODO} to implement behavioral cloning. A command for running behavioral cloning
+is given in the README file.
+
+We recommend that you read the files in the following order:
+\begin{itemize}
+  \item \texttt{scripts/run\_hw1.py}: (run training loop).
+  \item \texttt{policies/MLP\_policy.py}: (policy definition).
+  \item \texttt{infrastructure/replay\_buffer.py}: (stores training trajectories).
+  \item \texttt{infrastructure/utils.py}: (utilities for sampling trajectories from a policy).
+  \item \texttt{infrastructure/pytorch\_utils.py}: (utilities for converting between NumPy/PyTorch).
+\end{itemize}
+
+For some files, important functionality is missing and marked with \texttt{TODO}. Specifically, you are asked
+to implement parts of the following:
+\begin{itemize}
+  \item \texttt{policies/MLP\_policy.py}: \texttt{forward()} and \texttt{update()} functions.
+  \item \texttt{infrastructure/utils.py}: \texttt{sample\_trajectory()} function.
+  \item \texttt{scripts/run\_hw1.py}: \texttt{run\_training\_loop()} function (most of your code will be here).
+\end{itemize}
+
+\section{Behavioral Cloning}
+
+\begin{enumerate}[label=\arabic*.]
+\item Run behavioral cloning (BC) and report results on two tasks: one where a behavioral cloning agent
+should achieve at least 30\% of the performance of the expert, and one environment of your choosing
+where it does not. Here is how you can run the Ant task:
+\begin{verbatim}
+export PYTHONPATH="/media/zks/T7 Shield/2025上学期/深度强化学习/LAB/homework_fall2023:$PYTHONPATH"
+python cs285/scripts/run_hw1.py \
+ --expert_policy_file cs285/policies/experts/Ant.pkl \
+ --env_name Ant-v4 --exp_name bc_ant --n_iter 1 \
+ --expert_data cs285/expert_data/expert_data_Ant-v4.pkl \
+ --video_log_freq -1
+\end{verbatim}
+
+When providing results, report the mean and standard deviation of your policy’s return over multiple
+rollouts in a table, and state which task was used. When comparing one that is working versus one
+that is not working, be sure to set up a fair comparison in terms of network size, amount of data, and
+number of training iterations. Provide these details (and any others you feel are appropriate) in the
+table caption.
+
+\textbf{Note:} What “report the mean and standard deviation” means is that your \texttt{eval\_batch\_size} should
+be greater than \texttt{ep\_len}, such that you’re collecting multiple rollouts when evaluating the performance
+of your trained policy. For example, if \texttt{ep\_len} is 1000 and \texttt{eval\_batch\_size} is 5000, then you’ll be
+collecting approximately 5 trajectories (maybe more if any of them terminate early), and the logged
+\texttt{Eval\_AverageReturn} and \texttt{Eval\_StdReturn} represent the mean/std of your policy over these 5 rollouts.
+Make sure you include these parameters in the table caption as well.
+
+\textbf{Tip:} To generate videos of the policy, remove the flag \texttt{--video\_log\_freq -1}. However, this is slower,
+and so you probably want to keep this flag on while debugging.
+
+\textbf{Solution}
+Experiment on Ant-v4 environment.Initial parameters
+\begin{verbatim}
+python cs285/scripts/run_hw1.py \
+ --expert_policy_file cs285/policies/experts/Ant.pkl \
+ --env_name Ant-v4 --exp_name bc_ant_original --n_iter 1 \
+ --expert_data cs285/expert_data/expert_data_Ant-v4.pkl \
+ --video_log_freq -1
+
+Eval_AverageReturn : 907.4296264648438
+Eval_StdReturn : 0.0
+Eval_MaxReturn : 907.4296264648438
+Eval_MinReturn : 907.4296264648438
+Eval_AverageEpLen : 1000.0
+Train_AverageReturn : 4681.891673935816
+Train_StdReturn : 30.70862278765526
+Train_MaxReturn : 4712.600296723471
+Train_MinReturn : 4651.18305114816
+Train_AverageEpLen : 1000.0
+Training Loss : 0.03436638414859772
+Train_EnvstepsSoFar : 0
+TimeSinceStart : 1.130906105041504
+Initial_DataCollection_AverageReturn : 4681.891673935816  
+\end{verbatim}
+
+Experiment on Ant-v4 environment 2000 num\_agent\_train\_steps\_per\_iter
+\begin{verbatim}
+python cs285/scripts/run_hw1.py \
+ --expert_policy_file cs285/policies/experts/Ant.pkl \
+ --env_name Ant-v4 --exp_name bc_ant_2000 --n_iter 1 \
+ --expert_data cs285/expert_data/expert_data_Ant-v4.pkl \
+ --video_log_freq -1 --num_agent_train_steps_per_iter 2000
+
+ Eval_AverageReturn : 2917.578857421875
+ Eval_StdReturn : 1281.930908203125
+ Eval_MaxReturn : 4199.509765625
+ Eval_MinReturn : 1635.6478271484375
+ Eval_AverageEpLen : 695.5
+ Train_AverageReturn : 4681.891673935816
+ Train_StdReturn : 30.70862278765526
+ Train_MaxReturn : 4712.600296723471
+ Train_MinReturn : 4651.18305114816
+ Train_AverageEpLen : 1000.0
+ Training Loss : 0.010485836304724216
+ Train_EnvstepsSoFar : 0
+ TimeSinceStart : 1.8920543193817139
+ Initial_DataCollection_AverageReturn : 4681.891673935816
+ Done logging... 
+\end{verbatim}
+
+Experiment on Ant-v4 environment.5000 num\_agent\_train\_steps\_per\_iter
+\begin{verbatim}
+python cs285/scripts/run_hw1.py \
+  --expert_policy_file cs285/policies/experts/Ant.pkl \
+  --env_name Ant-v4 --exp_name bc_ant_5000 --n_iter 1 \
+  --expert_data cs285/expert_data/expert_data_Ant-v4.pkl \
+  --video_log_freq -1 --num_agent_train_steps_per_iter 5000
+
+Eval_AverageReturn : 4674.00244140625
+Eval_StdReturn : 0.0
+Eval_MaxReturn : 4674.00244140625
+Eval_MinReturn : 4674.00244140625
+Eval_AverageEpLen : 1000.0
+Train_AverageReturn : 4681.891673935816
+Train_StdReturn : 30.70862278765526
+Train_MaxReturn : 4712.600296723471
+Train_MinReturn : 4651.18305114816
+Train_AverageEpLen : 1000.0
+Training Loss : 0.0019066202221438289
+Train_EnvstepsSoFar : 0
+TimeSinceStart : 4.066415071487427
+Initial_DataCollection_AverageReturn : 4681.891673935816
+Done logging...
+\end{verbatim}
+
+\item Experiment with one set of hyperparameters that affects the performance of the behavioral cloning
+agent, such as the amount of training steps, the amount of expert data provided, or something that you
+come up with yourself. For one of the tasks used in the previous question, show a graph of how the BC
+agent’s performance varies with the value of this hyperparameter. In the caption for the graph, state
+the hyperparameter and a brief rationale for why you chose it.
+\end{enumerate}
+
+
+\section{DAgger}
+\begin{enumerate}
+\item Using the same code, you should be able to run DAgger by modifying the runtime parameters as
+follows:
+\begin{verbatim}
+python cs285/scripts/run_hw1.py \
+ --expert_policy_file cs285/policies/experts/Ant.pkl \
+ --env_name Ant-v4 --exp_name dagger_ant --n_iter 10 \
+ --do_dagger --expert_data cs285/expert_data/expert_data_Ant-v4.pkl \
+ --video_log_freq -1
+\end{verbatim}
+\item Run DAgger and report results on the two tasks you tested previously with behavioral cloning. Report
+your results in the form of a learning curve, plotting the number of DAgger iterations vs. the policy’s
+mean return, with error bars to show the standard deviation. Include the performance of the expert
+policy and the behavioral cloning agent on the same plot (as horizontal lines that go across the plot). In
+the caption, state which task you used, and any details regarding network architecture, amount of data,
+etc. (as in the previous section).
+\end{enumerate}
+
+\textbf{Solution}
+Experiment on Ant-v4 environment DAgger
+\begin{verbatim}
+python cs285/scripts/run_hw1.py \
+ --expert_policy_file cs285/policies/experts/Ant.pkl \
+ --env_name Ant-v4 --exp_name dagger_ant_original --n_iter 10 \
+ --do_dagger --expert_data cs285/expert_data/expert_data_Ant-v4.pkl \
+ --video_log_freq -1
+ Eval_AverageReturn : 4523.068359375
+ Eval_StdReturn : 0.0
+ Eval_MaxReturn : 4523.068359375
+ Eval_MinReturn : 4523.068359375
+ Eval_AverageEpLen : 1000.0
+ Train_AverageReturn : 4800.208984375
+ Train_StdReturn : 0.0
+ Train_MaxReturn : 4800.208984375
+ Train_MinReturn : 4800.208984375
+ Train_AverageEpLen : 1000.0
+ Training Loss : 0.0004822885093744844
+ Train_EnvstepsSoFar : 9000
+ TimeSinceStart : 14.66175365447998 
+\end{verbatim}
+
+Experiment on Ant-v4 environment 2000 num\_agent\_train\_steps\_per\_iter
+\begin{verbatim}
+python cs285/scripts/run_hw1.py \
+  --expert_policy_file cs285/policies/experts/Ant.pkl \
+  --env_name Ant-v4 --exp_name dagger_ant_2000 --n_iter 10 \
+  --do_dagger --expert_data cs285/expert_data/expert_data_Ant-v4.pkl \
+  --video_log_freq -1 --num_agent_train_steps_per_iter 2000
+  Collecting data for eval...
+  Eval_AverageReturn : 4674.890625
+  Eval_StdReturn : 0.0
+  Eval_MaxReturn : 4674.890625
+  Eval_MinReturn : 4674.890625
+  Eval_AverageEpLen : 1000.0
+  Train_AverageReturn : 4737.00537109375
+  Train_StdReturn : 0.0
+  Train_MaxReturn : 4737.00537109375
+  Train_MinReturn : 4737.00537109375
+  Train_AverageEpLen : 1000.0
+  Training Loss : 0.00027269450947642326
+  Train_EnvstepsSoFar : 9442
+  TimeSinceStart : 20.868728160858154
+  Done logging...  
+\end{verbatim}
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\textwidth]{hw1dagger1.png}
+  \caption{DAgger 在 Ant-v4 环境中的学习曲线。横轴为迭代次数，纵轴为平均回报。}
+  \label{fig:dagger_ant}
+\end{figure}
+
+\section{Evaluation}
+\textbf{Eval\_AverageReturn:} 
+Average cumulative reward per episode during evaluation.
+This reflects the overall performance of the current policy. A higher value indicates better imitation or control ability. \\[0.6em]
+
+\noindent
+\textbf{Eval\_StdReturn:} 
+Standard deviation of evaluation returns, measuring the variability of policy performance across episodes. \\[0.6em]
+
+\noindent
+\textbf{Eval\_MaxReturn / Eval\_MinReturn:} 
+Maximum and minimum total rewards obtained during evaluation.
+These values represent the best and worst case performances of the policy. \\[0.6em]
+
+\noindent
+\textbf{Eval\_AverageEpLen:} 
+Average episode length during evaluation.
+A longer episode length implies that the agent can maintain stability for a longer time without failure. \\[1em]
+
+\noindent
+\textbf{Train\_AverageReturn:} 
+Average cumulative reward from training rollouts stored in the replay buffer.
+Reflects the quality of training samples used for imitation learning. \\[0.6em]
+
+\noindent
+\textbf{Train\_StdReturn:} 
+Standard deviation of returns in training trajectories, indicating how diverse or stable the sampled trajectories are. \\[0.6em]
+
+\noindent
+\textbf{Train\_MaxReturn / Train\_MinReturn:} 
+Maximum and minimum returns from the training data. These indicate the range of performance in collected rollouts. \\[0.6em]
+
+\noindent
+\textbf{Train\_AverageEpLen:} 
+Average episode length in training data. It provides another measure of behavioral stability during training. \\[1em]
+
+\noindent
+\textbf{Training Loss (MSE):} 
+The supervised learning loss between predicted and expert actions:
+\[
+L = \| \pi_{\theta}(o) - a_{\text{expert}} \|^2
+\]
+A smaller value indicates the policy is better at imitating the expert’s behavior. \\[1em]
+
+\noindent
+\textbf{Train\_EnvstepsSoFar:} 
+Total number of environment steps taken so far during training. 
+Used to measure the scale of interaction data collected. \\[0.6em]
+
+\noindent
+\textbf{TimeSinceStart:} 
+Total elapsed wall-clock time since the beginning of training (in seconds). 
+Useful for tracking computational efficiency.
+
+
+\section{(Extra Credit) SwitchDAgger}
+
+One of the shortcomings of the DAgger algorithm discussed in lecture is that it requires the human expert to
+annotate optimal actions on states gathered by the robot. This may be counterintuitive, since humans usually
+select actions with continuous feedback from the environment.
+
+In this question, you will analyze a variant of the DAgger algorithm that hands off control to the human
+expert at points during rollouts, allowing them to provide interactive demonstrations. We consider a discrete
+MDP with horizon $T$ and an expert policy $\pi^*$. At each iteration $n = 1, \dots, N$ we have a policy $\pi^{\,n}$.
+We roll out trajectories from this policy such that in each one we transfer control to the expert at some random time
+step $X^* + 1$ until the remainder of the trajectory. We denote the version of $\pi^{\,n}$ that hands off control with
+some probability as $\tilde{\pi}^{\,n}$.
+
+Formally, define $S_X(\pi_1, \pi_2)$ to be the policy that executes policy $\pi_1$ for $X$ steps, and then switches to running
+policy $\pi_2$ from the current state for the remaining steps in the trajectory. We define our algorithm,
+\textbf{SwitchDAgger}, as follows. We set $\tilde{\pi}^{\,0} \leftarrow \pi^*$ and $\pi^{\,0} \leftarrow \hat{\pi}^{\,1}$ for convenience.
+At each step $n = 1, \dots, N$ we perform the following updates:
+\[
+\hat{\pi}^{\,n} \leftarrow \text{fit to expert actions } \pi^*(s) \text{ across } s \sim p_{\tilde{\pi}^{\,n-1}},
+\]
+\[
+\tilde{\pi}^{\,n} \leftarrow S_{X_n}(\hat{\pi}^{\,n}, \tilde{\pi}^{\,n-1}) \quad \text{where } X_n + 1 \sim \text{Geom}(1 - \alpha),
+\]
+\[
+\pi^{\,n} \leftarrow S_{X_n}(\hat{\pi}^{\,n}, \pi^{\,n-1}), \quad \text{or equivalently } S_{X^*}(\tilde{\pi}^{\,n}, \pi^{\,0})
+\text{ for } X^* = \sum_{i=1}^n X_i,
+\]
+where we assume $\hat{\pi}^{\,n}$ is fit across the state marginal distribution of $\tilde{\pi}^{\,n-1}$ so that
+\[
+\E_{s \sim p_{\tilde{\pi}^{\,n-1}}}\Pr[\hat{\pi}^{\,n}(s) \ne \pi^*(s)] \le \varepsilon.
+\]
+
+We define the cost as the expected number of errors made by a policy:
+\[
+C(\pi) = \sum_{t=1}^T \E_{s_t \sim p_\pi} \Pr[\pi(s_t) \ne \pi^*(s_t)].
+\]
+
+Our objective is to minimize the cost of the final policy produced by SwitchDAgger that does not use
+the expert, $\pi^{\,N}$. In the following parts, you will show that we can bound the cost $C(\pi^{\,N})$ of this policy by
+$O(T \varepsilon \log(1/\varepsilon))$ for a suitable choice of $N$ and $\alpha$.
+
+\begin{enumerate}[label=\arabic*.]
+  \item Show we can bound $C(\tilde{\pi}^{\,n}) \le A(T, n)$ for some $A(t, n)$ defined by the following conditions:
+  \begin{align*}
+    A(0, n) &= 0, \\
+    A(t, 0) &= 0, \\
+    A(t, n) &= \alpha \varepsilon t + \alpha (1 - \varepsilon) A(t - 1, n) + (1 - \alpha) A(t, n - 1).
+  \end{align*}
+    
+
+  \item Prove that $C(\tilde{\pi}^{\,n}) \le T n \alpha \varepsilon$.
+
+  \item Show that $C(\pi^{\,n}) \le C(\tilde{\pi}^{\,n}) + T e^{-\frac{n}{(1 - \alpha)T}}$ when $n \ge T$ and $\alpha \le 1/T$. 
+  \textbf{[Hint:} a Chernoff bound gives $\Pr[X^* \le T] \le e^{-\frac{n}{(1 - \alpha)T}}$.]
+
+  \item Conclude that for a choice of $\alpha$ and $N$ that depend on $\varepsilon$ and $T$, we can bound the cost
+  of the final \textsc{SwitchDAgger} policy as $C(\pi^{\,N}) = \mathcal{O}(T \varepsilon \log(1/\varepsilon))$.
+\end{enumerate}
+
+\textbf{Solution}
+1.
+取 $q=\alpha$，并注意交接步数 $X_n+1\sim \mathrm{Geom}(1-q)$。
+
+于是有
+\begin{equation}
+C(\tilde{\pi}^n)
+= \sum_{k=1}^{T-1} q^k (1 - q) \, C(\tilde{\pi}^n \mid X_n = k)
++ (1 - q)\, C(\tilde{\pi}^n \mid X_n = 0).
+\tag{1}
+\end{equation}
+
+其中，条件期望项可写作：
+\begin{equation}
+C(\tilde{\pi}^n \mid X_n = k)
+= \sum_{t=1}^{k} \mathbb{E}_{s_t \sim p_t^{(\hat{\pi}^n)}} 
+\mathrm{err}_{\hat{\pi}^n}(s_t)
++ \sum_{t=k+1}^{T} 
+\mathbb{E}_{s_t \sim p_{t-k}^{(\tilde{\pi}^{n-1});\, \text{start} \sim p_k^{(\hat{\pi}^n)}}} 
+\mathrm{err}_{\tilde{\pi}^{n-1}}(s_t),
+\tag{2}
+\end{equation}
+即前 $k$ 步由 $\hat{\pi}^n$ 控制，之后从状态分布 
+$s_k \sim p_k^{(\hat{\pi}^n)}$ 
+起转由 $\tilde{\pi}^{n-1}$ 控制。
+
+由几何分布的性质，
+\[
+\sum_{k=1}^{T-1} q^{k}(1-q)=1-q^{T-1},
+\]
+并代入式 (1) 与 (2)，得到
+\begin{align}
+C(\tilde{\pi}^n)
+&= 
+\sum_{k=1}^{T-1} q^{k}(1-q)
+\left[
+\sum_{t=1}^{k} \mathbb{E}_{s_t \sim p_t^{(\hat{\pi}^n)}} 
+\mathrm{err}_{\hat{\pi}^n}(s_t)
++ \sum_{t=k+1}^{T} 
+\mathbb{E}_{s_t \sim p_{t-k}^{(\tilde{\pi}^{n-1});\, \text{start}\sim p_k^{(\hat{\pi}^n)}}}
+\mathrm{err}_{\tilde{\pi}^{n-1}}(s_t)
+\right] \notag\\
+&\quad + (1-q)
+\sum_{t=1}^{T} 
+\mathbb{E}_{s_t \sim p_t^{(\tilde{\pi}^{n-1})}} 
+\mathrm{err}_{\tilde{\pi}^{n-1}}(s_t).
+\tag{3}
+\end{align}
+
+取 $q=\alpha$，并按交接时刻分段（$X_n+1\!\sim\!\mathrm{Geom}(1-q)$）：
+\begin{equation}
+\label{eq:4}
+\boxed{
+\sum_{k=1}^{T-1} q^{k}(1-q)\!\left[
+\sum_{t=1}^{k}\mathbb{E}_{s_t\sim p^{(\hat\pi^{\,n})}_t}\!\operatorname{err}_{\hat\pi^{\,n}}(s_t)
+\;+\;
+\sum_{t=k+1}^{T}\mathbb{E}_{s_t\sim p^{(\tilde\pi^{\,n-1})}_{t-k};\,\text{start}\sim p^{(\hat\pi^{\,n})}_k}\!
+\operatorname{err}_{\tilde\pi^{\,n-1}}(s_t)
+\right]}
+\end{equation}
+
+把 $q$ 提取出来（只重排权重，不改被积项），得
+\begin{equation}
+\label{eq:4-factor}
+\eqref{eq:4}
+\;=\;
+q\sum_{k=1}^{T-1} q^{k-1}(1-q)\;
+\underbrace{\left[
+\sum_{t=1}^{k}\mathbb{E}_{s_t\sim p^{(\hat\pi^{\,n})}_t}\!\operatorname{err}_{\hat\pi^{\,n}}(s_t)
++\sum_{t=k+1}^{T}\mathbb{E}_{s_t\sim p^{(\tilde\pi^{\,n-1})}_{t-k};\,\text{start}\sim p^{(\hat\pi^{\,n})}_k}\!
+\operatorname{err}_{\tilde\pi^{\,n-1}}(s_t)
+\right]}_{:=\ \boxed{\text{(5)}_k}}
+\end{equation}
+
+\paragraph{Step (5): 拆第 $t=1$ 步}
+记事件 $E=\{\hat\pi^{\,n}(s_1)\neq\pi^*(s_1)\}$。则
+\begin{align}
+\text{(5)}_k
+&=\;
+\underbrace{\mathbb{E}\!\left[\mathbf{1}\{E\}
+\left(1+\sum_{t=2}^{k}\operatorname{err}_{\hat\pi^{\,n}}(s_t)\right)\right]}_{\text{第1步出错分支}}
+\;+\;
+\underbrace{\mathbb{E}\!\left[\mathbf{1}\{\neg E\}
+\left(\sum_{t=2}^{k}\operatorname{err}_{\hat\pi^{\,n}}(s_t)\right)\right]}_{\text{第1步正确：继续按 }\hat\pi^{\,n}}
+\notag\\[-2pt]
+&\hspace{3.7cm}
++\;\underbrace{\mathbb{E}\!\left[\mathbf{1}\{\neg E\}
+\left(\sum_{t=k+1}^{T}\operatorname{err}_{\tilde\pi^{\,n-1}}(s_t)\right)\right]}_{\text{从 }s_k\sim p_k^{(\hat\pi^{\,n})}\text{ 起接 }\tilde\pi^{\,n-1}}
+\label{eq:5-split}
+\end{align}
+
+将三项分别写成条件期望：
+\begin{align}
+\text{(5)}_k
+&=\;
+\Pr(E)\,\mathbb{E}\!\left[1+\sum_{t=2}^{k}\operatorname{err}_{\hat\pi^{\,n}}(s_t)\ \bigg|\ E\right]
+\;+\;
+\Pr(\neg E)\,\mathbb{E}\!\left[\sum_{t=2}^{k}\operatorname{err}_{\hat\pi^{\,n}}(s_t)\ \bigg|\ \neg E\right]
+\notag\\[-2pt]
+&\quad
++\;\Pr(\neg E)\,\mathbb{E}\!\left[\sum_{t=k+1}^{T}\operatorname{err}_{\tilde\pi^{\,n-1}}(s_t)
+\ \bigg|\ \neg E\right].
+\label{eq:5-conds}
+\end{align}
+
+\paragraph{把“相等分支”改写成 $A(T\!-\!1,n)$ 的同型（用马尔可夫性质）}
+在 $\neg E$ 下有 $\hat\pi^{\,n}(s_1)=\pi^*(s_1)$，由马尔可夫性质，
+从第2步起的状态分布只依赖于 $(s_1,a_1)$，而此时两者动作一致，
+故“去掉第1步”后得到的两段之和与把“总步数减1、时间指标整体后移1”
+同型。定义变元 $u=t-1$，得
+\begin{align}
+\mathbb{E}\!\left[\sum_{t=2}^{k}\operatorname{err}_{\hat\pi^{\,n}}(s_t)\ \bigg|\ \neg E\right]
+&=\sum_{u=1}^{k-1}\mathbb{E}_{s_{u}\sim p^{(\hat\pi^{\,n})}_{u}}\operatorname{err}_{\hat\pi^{\,n}}(s_u),
+\\
+\mathbb{E}\!\left[\sum_{t=k+1}^{T}\operatorname{err}_{\tilde\pi^{\,n-1}}(s_t)\ \bigg|\ \neg E\right]
+&=\sum_{u=k}^{T-1}\mathbb{E}_{s_{u}\sim p^{(\tilde\pi^{\,n-1})}_{u-k};\ \text{start}\sim p^{(\hat\pi^{\,n})}_{k-1}}
+\operatorname{err}_{\tilde\pi^{\,n-1}}(s_u).
+\end{align}
+
+于是（把“步数整体减 1”），对每个 $k$ 有
+\begin{equation}
+\boxed{
+\mathbb{E}\!\left[\sum_{t=2}^{k}\operatorname{err}_{\hat\pi^{\,n}}(s_t)
++\sum_{t=k+1}^{T}\operatorname{err}_{\tilde\pi^{\,n-1}}(s_t)\ \bigg|\ \neg E\right]
+\ \equiv\ \text{(与 }A(T\!-\!1,n)\text{ 同型的两段和，$k\mapsto k-1$)}}
+\label{eq:A-T-1n-shape}
+\end{equation}
+
+把 \eqref{eq:5-conds} 代回 \eqref{eq:4-factor}，并把 $\{q^{k-1}(1-q)\}_{k=1}^{T-1}$ 视作
+对 $k-1\in\{0,\dots,T-2\}$ 的几何权重，就得到
+\[
+\eqref{eq:4}
+\ =\
+q\!\sum_{r=0}^{T-2}\! q^{r}(1-q)
+\Big(\ \Pr(E)\,\Xi_r\ +\ \Pr(\neg E)\,\underbrace{\Theta_r}_{\text{与 }A(T-1,n)\text{ 同型}}\ \Big),
+\]
+其中 $\Xi_r$ 是“第1步出错分支”的（上界）贡献，$\Theta_r$ 为 \eqref{eq:A-T-1n-shape} 的那部分。
+
+由此即可把 \eqref{eq:4} 的 $\alpha$ 部分写成
+\[
+q\Big(\ \Pr(E)\cdot\text{[出错项]}\ +\ \Pr(\neg E)\cdot A(T-1,n)\ \Big),
+\]
+再与“首步交接”项 $(1-q)C(T,n\!-\!1)$ 合并，得到递推公式。.
+
+2.
+显然
+
+3.
+When $n\ge T$ and $\alpha\le 1/T$, we have
+\[
+C(\pi^{\,n}) \le C(\tilde\pi^{\,n}) + T e^{-\frac{n}{(1-\alpha)T}}.
+\]
+
+\paragraph{Proof.}
+Recall that
+\[
+\pi^{\,n} = S_{X^*}(\tilde\pi^{\,n},\pi^{\,0}),
+\qquad
+X^* = \sum_{i=1}^{n} X_i,\quad X_i+1\sim \mathrm{Geom}(1-\alpha),
+\]
+that is, $\pi^{\,n}$ executes $\tilde\pi^{\,n}$ for $X^*$ steps and then switches to $\pi^{\,0}$ if more steps remain.
+
+Let
+\[
+C(\pi) = \sum_{t=1}^{T}\Pr[\pi(s_t)\neq \pi^*(s_t)]
+\]
+be the expected number of errors within a horizon of $T$.
+
+We consider two cases for each trajectory:
+\begin{itemize}
+\item \textbf{Case 1: $X^*\ge T$.}
+  No switch occurs within the $T$-step rollout.
+  Then $\pi^{\,n}$ and $\tilde\pi^{\,n}$ are identical on $\{1,\dots,T\}$, hence their per-step errors coincide.
+\item \textbf{Case 2: $X^*\le T$.}
+  A switch may occur within the first $T$ steps.  In the worst case this can change at most $T$ individual step
+  errors (under $0$–$1$ loss).
+\end{itemize}
+Therefore, trajectory-wise we have
+\[
+\sum_{t=1}^{T}\mathbf 1\{\pi^{\,n}(s_t)\neq\pi^*(s_t)\}
+\;\le\;
+\sum_{t=1}^{T}\mathbf 1\{\tilde\pi^{\,n}(s_t)\neq\pi^*(s_t)\}
+\;+\;
+T\,\mathbf 1\{X^*\le T\}.
+\]
+Taking expectations over both the environment and algorithm randomness yields
+\begin{equation}
+C(\pi^{\,n})
+\;\le\;
+C(\tilde\pi^{\,n})
+\;+\;
+T\,\Pr[X^*\le T].
+\tag{$\star$}
+\end{equation}
+
+By the Chernoff bound provided in the hint, when $n\ge T$ and $\alpha\le 1/T$,
+\[
+\Pr[X^*\le T] \le \exp\!\left(-\frac{n}{(1-\alpha)T}\right).
+\]
+Substituting this into~($\star$) gives
+\[
+\boxed{
+C(\pi^{\,n})
+\;\le\;
+C(\tilde\pi^{\,n})
+\;+\;
+T\,e^{-\frac{n}{(1-\alpha)T}}.
+}
+\]
+\hfill$\square$
+4.
+\paragraph{Claim.}
+There exist choices of $\alpha$ and $N$ depending on $\varepsilon$ and $T$ such that
+\[
+C(\pi^{\,N})\,=\,\mathcal{O}\!\big(T\,\varepsilon\,\log(1/\varepsilon)\big).
+\]
+
+\paragraph{Proof.}
+Take
+\[
+L \;=\; \left\lceil c\,\log\!\frac{1}{\varepsilon}\right\rceil,
+\qquad
+\alpha \;=\; 1-\frac{1}{L},
+\qquad
+N \;=\; c'\,T,
+\]
+for absolute constants $c,c'>0$ chosen below.
+
+By $C_t(\tilde{\pi}^{\,n}) \le (1-\alpha)\,C_t(\tilde{\pi}^{\,n-1}) + \alpha\big[\varepsilon t + (1-\varepsilon)\,C_{t-1}(\tilde{\pi}^{\,n})\big]$
+,
+\[
+C(\tilde\pi^{\,N})
+\;\le\;
+\frac{\varepsilon\,T}{1-\alpha}
+\;=\;
+\varepsilon\,T\,L
+\;=\;
+\mathcal{O}\!\big(T\,\varepsilon\,\log(1/\varepsilon)\big).
+\]
+
+For the switching tail, $(1-\alpha)T = T/L$ we get
+\[
+T\,\exp\!\Big(-\tfrac{N}{(1-\alpha)T}\Big)
+\;=\;
+T\,\exp\!\Big(-\tfrac{N}{T/L}\Big)
+\;=\;
+T\,\exp\!\Big(-\tfrac{L\,N}{T}\Big)
+\;\le\;
+T\,\exp(-c' L).
+\]
+Taking $c'$ large enough so that $e^{-c' L}\le \varepsilon$ (e.g.\ $c'\ge 1$) yields
+\[
+T\,\exp\!\Big(-\tfrac{N}{(1-\alpha)T}\Big)\;\le\; T\,\varepsilon.
+\]
+
+Combining the two bounds gives
+\[
+C(\pi^{\,N})
+\;\le\;
+\underbrace{\mathcal{O}\!\big(T\,\varepsilon\,\log(1/\varepsilon)\big)}_{\text{from }C(\tilde\pi^{\,N})}
+\;+\;
+\underbrace{\mathcal{O}(T\,\varepsilon)}_{\text{switching tail}}
+\;=\;
+\mathcal{O}\!\big(T\,\varepsilon\,\log(1/\varepsilon)\big).
+\]
+
+\section{Discussion}
+\begin{enumerate}
+\item How much time did you spend on each part?
+\item Any feedback on this assignment?
+\end{enumerate}
+
+\section{Submission}
+Submit a PDF report and a zip of code and logs on Gradescope.  
+See the handout for expected directory structure and size limits.
+
+\end{document}

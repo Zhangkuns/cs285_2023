@@ -1,0 +1,6 @@
+base_config: dqn_basic
+env_name: LunarLander
+total_steps: 500000
+target_update_period: 1000
+use_double_q: true
+exploration_type: slow_decay

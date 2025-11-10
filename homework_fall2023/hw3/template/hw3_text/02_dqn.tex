@@ -1,0 +1,334 @@
+\section{Deep Q-Learning}
+\subsection{Introduction}
+
+Part 1 of this assignment requires you to implement and evaluate Q-learning for playing Atari games. The Q-learning algorithm was covered in lecture, and you will be provided with starter code. This assignment will be faster to run on a GPU, though it is possible to complete on a CPU as well. Note that we use convolutional neural network architectures in this assignment. Therefore, we recommend using the Colab option if you do not have a GPU available to you. Please start early!
+
+% The questions will require you to perform multiple runs of Q-learning, each of which can take quite a long time. Furthermore, depending on your implementation, you may find it necessary to tweak some of the parameters, such as learning rates or exploration schedules, which can also be very time consuming. The actual coding for this assignment will involve about 50 lines of code, but the evaluation will take longer than in the previous two assignments.
+
+\subsection{File overview}
+The starter code for this assignment can be found at
+
+\begin{centering}
+\url{https://github.com/berkeleydeeprlcourse/homework_fall2023/tree/main/hw3} \\
+\end{centering}
+\vspace{.35cm}
+
+You will implement a DQN agent in \verb|cs285/agents/dqn_agent.py| and \verb|cs285/scripts/run_hw3_dqn.py|. In addition to those two files, you should start by reading the following files thoroughly:
+\begin{itemize}
+    \item \verb|cs285/env_configs/dqn_basic.py|: builds networks and generates configuration for the basic DQN problems (cartpole, lunar lander).
+    \item \verb|cs285/env_configs/dqn_atari.py|: builds networks and generates configuration for the Atari DQN problems.
+    \item \verb|cs285/infrastructure/replay_buffer.py|: implementation of replay buffer. You don't need to know how the memory efficient replay buffer works, but you should try to understand what each method does (particularly the difference between \verb|insert|, which is called after a frame, and \verb|on_reset|, which inserts the first observation from a trajectory) and how it differs from the regular replay buffer.
+    \item \verb|cs285/infrastructure/atari_wrappers.py|: contains some wrappers specific to the Atari environments. These wrappers can be key to getting challenging Atari environments to work!
+\end{itemize}
+
+There are two new package requirements (\texttt{gym[atari]} and \texttt{pip install gym[accept-rom-license]}) beyond what was used in the first two assignments; make sure to install these with \texttt{pip install -r requirements.txt} if you're re-using your Python environment from last assignment.
+
+\subsection{Implementation}
+
+The first phase of the assignment is to implement a working version of Q-learning, with some extra bells and whistles like double DQN. Our code will work with both state-based environments, where our input is a low-dimensional list of numbers (like Cartpole), but we'll also support learning directly from pixels!
+
+In addition to the double $Q$-learning trick (which you'll implement later), we have a few other tricks implemented to stabilize performance. You don't have to do anything to enable these, but you should look at the implementations and think about why they work.
+\begin{itemize}
+    \item \textbf{Exploration scheduling for $\epsilon$-greedy actor.} This starts $\epsilon$ at a high value, close to random sampling, and decays it to a small value during training.
+    \item \textbf{Learning rate scsheduling.} Decay the learning rate from a high initial value to a lower value at the end of training.
+    \item \textbf{Gradient clipping.} If the gradient norm is larger than a threshold, scale the gradients down so that the norm is equal to the threshold.
+    \item \textbf{Atari wrappers.}
+    \begin{itemize}
+        \item \textbf{Frame-skip.} Keep the same constant action for 4 steps.
+        \item \textbf{Frame-stack.} Stack the last 4 frames to use as the input.
+        \item \textbf{Grayscale.} Use grayscale images.
+        % \item \textbf{Fire-reset.} Some Atari games require pressing the ``fire'' button to start the game. In these environments, do this automatically.
+    \end{itemize}
+\end{itemize}
+
+\newpage
+\subsection{Basic Q-Learning}
+
+Implement the basic DQN algorithm. You'll implement an update for the $Q$-network, a target network, and 
+
+\textbf{What you'll need to do}:
+\begin{itemize}
+    \item Implement a DQN critic update in \verb|update_critic| by filling in the unimplemented sections (marked with TODO(student)).
+    \item Implement $\epsilon$-greedy sampling in \verb|get_action|
+    \item Implement the TODOs in \verb|run_hw3_dqn.py|.
+
+    \textbf{Hint:} A trajectory can end (\verb|done=True|) in two ways: the actual end of the trajectory (usually triggered by catastrophic failure, like crashing), or \textit{truncation}, where the trajectory doesn't actually end but we stop simulation for some reason (commonly, we truncate trajectories at some maximum episode length). In this latter case, you should still reset the environment, but the \verb|done| flag for TD-updates (stored in the replay buffer) should be false.
+    \item Call all of the required updates, and update the target critic if necessary, in \verb|update|.
+\end{itemize}
+
+\textbf{Testing this section}:
+\begin{itemize}
+    \item Debug your DQN implementation on \verb|CartPole-v1| with \verb|experiments/dqn/cartpole.yaml|. It should reach reward of nearly 500 within a few thousand steps.
+\end{itemize}
+
+\textbf{Deliverables}:
+\begin{itemize}
+    \item Submit your logs of \verb|CartPole-v1|, and a plot with environment steps on the $x$-axis and eval return on the $y$-axis.
+    \item Run DQN with three different seeds on \verb|LunarLander-v2|:
+\begin{lstlisting}[language=bash,breaklines=true]
+  python cs285/scripts/run_hw3_dqn.py -cfg experiments/dqn/lunarlander.yaml --seed 1
+  python cs285/scripts/run_hw3_dqn.py -cfg experiments/dqn/lunarlander.yaml --seed 2
+  python cs285/scripts/run_hw3_dqn.py -cfg experiments/dqn/lunarlander.yaml --seed 3
+\end{lstlisting}
+\textbf{Your code may not reach high return (200) on Lunar Lander yet; this is okay!} Your returns may go up for a while and then collapse in some or all of the seeds.
+    \item Run DQN on \verb|CartPole-v1|, but change the \verb|learning rate| to 0.05 (you can change this in the YAML config file). What happens to (a) the predicted $Q$-values, and (b) the critic error? Can you relate this to any topics from class or the analysis section of this homework?
+\end{itemize}
+
+\textbf{Solutions}
+\begin{verbatim}
+export PYTHONPATH=/workspace/DeepRL/LAB/homework_fall2023
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander.yaml --exp_name epyc_seed1 --seed 1
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander.yaml --exp_name epyc_seed2 --seed 2
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander.yaml --exp_name epyc_seed3 --seed 3
+
+拉取镜像
+docker pull rocm/pytorch:rocm7.1_ubuntu22.04_py3.10_pytorch_release_2.6.0
+创建容器
+docker run -it \
+    --name cs285 \
+    --device=/dev/kfd --device=/dev/dri \
+    --group-add video --group-add render \
+    --ipc=host --shm-size=8g \
+    -v $HOME/diska/DeepRL:/workspace/DeepRL \
+    -w /workspace/DeepRL \
+    rocm/pytorch:rocm7.1_ubuntu22.04_py3.10_pytorch_release_2.6.0 \
+    bash
+重新进入
+docker exec -it cs285 bash
+继承环境
+python -m venv /opt/venvs/cs285 --system-site-packages
+启用
+source /opt/venvs/cs285/bin/activate
+运行测试
+PYTHONPATH=/workspace/DeepRL/LAB/homework_fall2023 
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander.yaml --seed 1
+查看数据
+tensorboard --logdir=hw3/data
+\end{verbatim}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_eval_return.png}
+        \caption{Eval return Curve}
+        \label{fig:dqn_eval_return}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_critic_loss.png}
+        \caption{Critic Loss Curve}
+        \label{fig:dqn_critic_loss}
+    \end{subfigure}
+    \caption{Learning Curves for basic DQN on LunarLander-v2.}
+    \label{fig:dqn_baseline_curves}
+\end{figure}
+这个是基本的DQN在LunarLander-v2上的学习曲线，可以看到最终的得分并不高，并且训练过程并不稳定，时常会出现崩溃的情况。这是因为基本的DQN存在过估计的问题，导致学习不稳定。
+
+\begin{verbatim}
+PYTHONPATH=/workspace/DeepRL/LAB/homework_fall2023 python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/cartpole.yaml --exp_name epyc_lr_default
+PYTHONPATH=/workspace/DeepRL/LAB/homework_fall2023 python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/cartpole0.05.yaml --exp_name epyc_lr_0.05
+\end{verbatim}
+CartPole 回报尺度很小（每步 +1，最多 ~500）。稳定的 DQN（Huber loss、目标网络、lr≈1e-3 或 5e-4）时，Q 值通常落在几十到几百的量级（贴近折扣回报上界）。
+
+把 lr 提到 0.05（比常用值大 50–100 倍），通常会看到：
+
+(a) Q 值（critic 输出）
+
+迅速冲高并剧烈振荡，常出现非物理的超大值（几百→几千甚至爆到 inf/NaN）。
+
+有时短暂下降，再次爆升，呈“锯齿/爆炸—回落—再爆炸”的模式。
+
+若你可视化 max\_a Q(s,a) 的曲线：前几千步内就偏离合理范围，随训练推进不收敛。
+
+(b) critic 误差（TD/Huber/MSE）
+
+初期可能快速下降一小段（看起来像“学到了点东西”），随即抖动放大，经常飙升到很大，最后要么在高位震荡，要么直接 NaN。
+
+用 Huber 会稍晚“爆”，但也会在高 lr 下抖动明显；用 MSE 更容易炸。
+
+函数逼近 + 离策略 + bootstrapping。DQN 同时满足三者，高学习率会放大不稳定性；目标网络本来在“冻住靶子”，但 0.05 的更新把在线 Q 推得太狠，目标也被频繁替换，相当于把“慢变靶子”又变快了 → 易发散。
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{cartpole_lr_eval_return.png}
+        \caption{Eval return Curve}
+        \label{fig:cartpole_eval_return}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{cartpole_lr_critic_loss.png}
+        \caption{Critic Loss Curve}
+        \label{fig:cartpole_critic_loss}
+    \end{subfigure}
+    \caption{Learning Curves for basic DQN on CartPole-v1.}
+    \label{fig:cartpole_curves}
+\end{figure}
+
+\newpage
+\subsection{Double Q-Learning}
+Let's try to stabilize learning. The double-Q trick avoids overestimation bias in the critic update by using two different networks to \textit{select} the next action $a'$ and to \textit{estimate} its value:
+\[a' = \textrm{arg}\max_{a'} Q_{\phi}(s', a')\]
+\[Q_{\textrm{target}} = r + \gamma(1-d_t) Q_{\phi'}(s', a').\]
+In our case, we'll keep using the target network $Q_{\phi'}$ to estimate the action's value, but we'll select the action using $Q_{\phi}$ (the online $Q$ network).
+
+Implement this functionality in \verb|dqn_agent.py|.
+
+\textbf{Deliverables}:
+\begin{itemize}
+    \item Run three more seeds of the lunar lander problem:
+\begin{lstlisting}[language=bash,breaklines=true]
+    
+  PYTHONPATH=/mnt/f/2025FirstSemester/DeepRL/LAB/homework_fall2023 
+  python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander_doubleq.yaml --exp_name wsl --seed 1
+  python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander_doubleq.yaml --exp_name wsl --seed 2
+  python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander_doubleq.yaml --exp_name wsl --seed 3
+\end{lstlisting}
+    You should expect a return of \textbf{200} by the end of training, and it should be fairly stable compared to your policy gradient methods from HW2.
+    
+    Plot returns from these three seeds in red, and the ``vanilla'' DQN results in blue, on the same set of axes. Compare the two, and describe in your own words what might cause this difference.
+
+    \item Run your DQN implementation on the \verb|MsPacman-v0| problem. Our default configuration will use double-$Q$ learning by default. You are welcome to tune hyperparameters to get it to work better, but the default parameters should work (so if they don't, you likely have a bug in your implementation). Your implementation should receive a score of around \textbf{1500} by the end of training (1 million steps. \textbf{This problem will take about 3 hours with a GPU, or {\color{red} 6 hours} without, so start early!}
+    \begin{lstlisting}[language=bash,breaklines=true]
+    python cs285/scripts/run_hw3_dqn.py -cfg experiments/dqn/mspacman.yaml
+    \end{lstlisting}
+    \item Plot the average training return (\verb|train_return|) and eval return (\verb|eval_return|) on the same axes. You may notice that they look very different early in training! Explain the difference.
+\end{itemize}
+
+\textbf{Solutions}
+\begin{verbatim}
+export PYTHONPATH=/workspace/DeepRL/LAB/homework_fall2023
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander_doubleq.yaml --exp_name epyc_seed1 --seed 1
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander_doubleq.yaml --exp_name epyc_seed2 --seed 2
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/lunarlander_doubleq.yaml --exp_name epyc_seed3 --seed 3
+
+\end{verbatim}
+可以明显的看到Double Q-learning的稳定性更好，训练曲线更加平滑，最终的得分也更高一些。
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_lunar_eval_return.png}
+        \caption{Eval return Curve}
+        \label{fig:lunar_double_q_eval_return}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_lunar_critic_loss.png}
+        \caption{Critic Loss Curve}
+        \label{fig:lunar_double_q_critic_loss}
+    \end{subfigure}
+    \caption{Learning Curves for DQN on LunarLander-v2 with Double Q-learning.}
+    \label{fig:lunar_double_q_curves}
+\end{figure}
+
+与基本的DQN相比，Double Q-learning显著提升了训练的稳定性，减少了过估计的问题，从而使得学习过程更加平滑，最终得分也更高。
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_lunar_double_q_ablation_eval_loss.png}
+        \caption{Eval return Curve}
+        \label{fig:lunar_double_q_ablation_eval_return}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_lunar_double_q_ablation_critic_loss.png}
+        \caption{Critic Loss Curve}
+        \label{fig:lunar_double_q_ablation_critic_loss}
+    \end{subfigure}
+    \caption{Learning Curves for DQN on LunarLander-v2 with Double Q-learning Ablation Study.}
+    \label{fig:lunar_double_q_ablation_curves}
+\end{figure}
+
+\newpage
+\subsection{Experimenting with Hyperparameters} Now let's analyze the sensitivity of Q-learning to hyperparameters. Choose one hyperparameter of your choice and run at least three other settings of this hyperparameter, in addition to the one used in Question 1, and plot all four values on the same graph. Your choice what you experiment with, but you should explain why you chose this hyperparameter in the caption. Create four config files in \verb|experiments/dqn/hyperparameters|, and look in \verb|cs285/env_configs/basic_dqn_config.py| to see which hyperparameters you're able to change. You can use any of the base YAML files as a reference.
+
+Hyperparameter options could include:
+\begin{itemize}
+    \item Learning rate
+    \item Network architecture
+    \item Exploration schedule (or, if you'd like, you can implement an alternative to $\epsilon$-greedy)
+\end{itemize}
+
+\textbf{Solutions}
+\begin{verbatim}
+export PYTHONPATH=/workspace/DeepRL/LAB/homework_fall2023
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/exploration/lunarlander_constant.yaml --exp_name epyc_constant --seed 1
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/exploration/lunarlander_fast_decay.yaml --exp_name epyc_fast_decay --seed 1
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/exploration/lunarlander_slow_decay.yaml --exp_name epyc_slow_decay --seed 1
+python hw3/cs285/scripts/run_hw3_dqn.py -cfg hw3/experiments/dqn/exploration/lunarlander_linear_decay.yaml --exp_name epyc_linear_decay --seed 1
+\end{verbatim}
+
+\begin{figure}[h]
+    \centering
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_lunar_ablation_exploration_eval_return.png}
+        \caption{Eval return Curve}
+        \label{fig:lunar_exploration_ablation_eval_return}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{dqn_lunar_ablation_exploration_critic_loss.png}
+        \caption{Critic Loss Curve}
+        \label{fig:lunar_exploration_ablation_critic_loss}
+    \end{subfigure}
+    \caption{Learning Curves for DQN on LunarLander-v2 with Double Q-learning Ablation Study.}
+    \label{fig:lunar_exploration_ablation_curves}
+\end{figure}
+
+性能排名（从好到差）：
+
+紫色 - Linear Decay: 240.3 (最稳定，达到目标！)
+粉色 - Fast Decay: 177.1 (次优但有波动)
+橙色 - Slow Decay: 14.51 (崩溃了！)
+青色 - Constant: -266.8 (完全失败)
+
+关键发现
+1. Linear Decay获胜 ✅
+
+成功达到200+目标分数（240.3）
+最稳定的学习曲线
+在300k步后持续保持高性能
+这证明了平衡的探索-利用策略最有效
+
+2. Fast Decay表现良好但不稳定
+
+达到约180分，接近目标
+学习速度快（150k步就达到高分）
+但后期有明显波动，说明过早减少探索可能错过更优策略
+
+3. Slow Decay严重失败 ⚠️
+
+橙色线在400k步后突然崩溃（从200降到0）
+可能原因：
+
+过度探索导致破坏了已学习的好策略
+在应该利用的阶段仍在大量探索
+可能触发了灾难性遗忘
+
+
+
+4. Constant epsilon彻底失败 ❌
+
+始终保持负分（-266.8）
+说明固定的exploration率无法适应学习过程
+可能epsilon值选择不当（太高或太低）
+
+重要洞察
+探索策略的关键特征：
+
+需要动态调整：固定epsilon不work
+早期充分探索：所有成功的策略都从epsilon=1.0开始
+适时收敛：需要在合适时机减少探索
+平衡最重要：过快或过慢都有问题

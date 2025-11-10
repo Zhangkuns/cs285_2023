@@ -1,0 +1,604 @@
+\section{Multistep Q-Learning}
+
+\ifsolutions
+\input{hw3_solutions/01_solutions}
+\fi
+
+\def\solve#1{\csname solution to #1\endcsname}
+
+\begingroup
+\def\Q{Q_{\phi_k}}
+\def\Qn{Q_{\phi_{k+1}}}
+\def\D{\mathcal{D}}
+
+Consider the $N$-step variant of Q-learning described in lecture. We learn $\Qn$ with the following updates:\begin{align}
+  y_{j,t} &\gets \biggl(\;\sum_{t'=t}^{t+N-1} \gamma^{t'-t} r_{j,t'}\biggr)+\gamma^{N} \max _{\mathbf{a}_{j,t+N}} \Q\left(\mathbf{s}_{j,t+N}, \mathbf{a}_{j,t+N}\right) \label{eq:q_target}\\
+  \phi_{k+1} &\gets \underset{\phi\in\Phi}{\arg\min}  \sum_{j,t} \bigl( y_{j,t}-Q_{\phi}(\mathbf s_{j,t},\mathbf a_{j,t}) \bigr)^2 \label{eq:q_update}
+\end{align}
+In these equations, $j$ indicates an index in the replay buffer of trajectories $\D_k$. We first roll out a batch of $B$ trajectories to update $\D_k$ and compute the target values in \eqref{eq:q_target}. We then fit $\Qn$ to these target values with \eqref{eq:q_update}. 
+After estimating $\Qn$, we can then update the policy through an argmax:\begin{align}
+  \pi_{k+1}\left(\mathbf{a}_{t} \mid \mathbf{s}_{t}\right)\gets \left\{\begin{array}{l}1 \text { if } \mathbf{a}_{t}=\arg \max _{\mathbf{a}_{t}} Q_{\phi_{k+1}}\left(\mathbf{s}_{t}, \mathbf{a}_{t}\right) \\ 0 \text{ otherwise. }\end{array}\right. \label{eq:policy_improvement}
+\end{align}
+We repeat the steps in \cref{eq:q_target,eq:q_update,eq:policy_improvement} $K$ times to improve the policy. In this question, you will analyze some properties of this algorithm, which is summarized in \Cref{alg:multi}.
+
+\begin{algorithm}
+\caption{Multistep Q-Learning}
+\label{alg:multi}
+\begin{algorithmic}[1]
+	\Require{iterations $K$, batch size $B$}
+	\State initialize random policy $\pi_0$, sample $\phi_0\sim\Phi$
+	\For{$k=0\ldots K-1$}
+		\State Update $\D_{k+1}$ with $B$ new rollouts from $\pi_k$ \label{eq:data}
+		\State compute targets with \eqref{eq:q_target}
+		\State $Q_{\phi_{k+1}} \gets$ update with \eqref{eq:q_update}
+		\State $\pi_{k+1} \gets$ update with \eqref{eq:policy_improvement}
+	\EndFor
+	\State\Return $\pi_{K}$
+\end{algorithmic}	
+\end{algorithm}
+
+
+
+\def\makecols#1#2{{\def\p{#2}\newcount\i\i0\hfill\loop\advance\i1\makebox[1cm][c]{\expandafter\p\the\i}\kern.5cm\ifnum\i<#1\repeat\kern-1cm}}
+\def\heading#1{\bf\expandafter\uppercase\expandafter{\romannumeral#1.}}
+\def\boxes#1{\ensuremath\square}
+\def\filled#1#2|#3{\ifnum#1=#3\ensuremath\blacksquare
+	\else\if\relax#2\relax\ensuremath\square
+	\else\filled#2|#3\fi\fi}
+\def\ncol{3}
+\newcommand{\checkeditem}[2]{\edef\x{0#1}\item[\expandafter\filled\x|#2]}
+
+
+\def\choices#1#2{
+	\begin{enumerate}
+	\item on-policy in tabular setting \makecols\ncol{\filled0#1|}
+	\item off-policy in tabular setting \makecols\ncol{\filled0#2|}
+	\end{enumerate}
+}
+
+\subsection{TD-Learning Bias (2 points)}
+\label{q:td_bias}
+
+\def\answer{} % <--- TODO: insert index (0/1) of answer
+\ifsolutions\solve\thesubsection\fi
+We say an estimator $f_\D$ of $f$ constructed using data $\D$ sampled from process $P$ is \textit{unbiased} when $\mathbb{E}_{\D\sim P}[f_\D(x)-f(x)]=0$ at each $x$.
+
+Assume $\hat Q$ is a noisy (but unbiased) estimate for $Q$. Is the Bellman backup $\mathcal{B}\hat Q = r(s, a) + \gamma \max_{a'} \hat Q(s', a')$ an unbiased estimate of $\mathcal{B}Q$?
+\begin{itemize}
+    \checkeditem\answer1 Yes
+    \checkeditem\answer2 No
+\end{itemize}
+
+\textbf{Solution:}
+
+我们知道：
+
+* $\hat Q$ 是无偏的：
+
+  $$
+  \mathbb{E}[\hat Q(s,a)] = Q(s,a)
+  $$
+
+但是现在我们不是直接用 $\hat Q$，而是用了一个非线性操作：
+
+$$
+\max_{a'} \hat Q(s', a')
+$$
+
+问题就出在这里。
+
+---
+
+❌ 非线性操作破坏无偏性
+
+“max” 是一个**非线性算子**，因此：
+
+$$
+\mathbb{E}[\max_{a'} \hat Q(s', a')] \neq \max_{a'} \mathbb{E}[\hat Q(s', a')]
+$$
+
+换句话说，即使每个动作的 $\hat Q(s',a')$ 都是无偏的，
+取最大值之后，期望值会 **偏高**（overestimate）。
+
+---
+
+🔎 举个简单例子
+
+假设只有两个动作 $a_1, a_2$，它们的真实值一样：
+
+$$
+Q(s',a_1) = Q(s',a_2) = 1
+$$
+
+而估计有噪声：
+
+$$
+\hat Q(s',a_1) = 1 + \epsilon_1,\quad \hat Q(s',a_2) = 1 + \epsilon_2
+$$
+
+其中 $\epsilon_i$ 是零均值噪声（即无偏）。
+
+那我们有：
+
+$$
+\mathbb{E}[\max(\hat Q_1, \hat Q_2)] = 1 + \mathbb{E}[\max(\epsilon_1, \epsilon_2)] > 1
+$$
+
+所以即使单个估计无偏，取最大值后整体**偏高**。
+
+---
+
+🧩 结论
+
+因此：
+
+$$
+\boxed{
+\mathcal{B}\hat Q = r + \gamma \max_{a'} \hat Q(s',a')
+}
+$$
+
+并不是 $\mathcal{B}Q = r + \gamma \max_{a'} Q(s',a')$ 的无偏估计。
+也就是说，**Bellman backup 有正偏差（overestimation bias）**。
+
+正确答案是：**No**。
+
+\subsection{Tabular Learning (6 points total)}
+\label{q:tabular_learning}
+
+At each iteration of the algorithm above after the update from \cref{eq:q_update}, $\Q$ can be viewed as an estimate of the true optimal $Q^*$. Consider the following statements: 
+\begin{enumerate}[label=\bf\Roman*.]
+  \item $Q_{\phi_{k+1}}$ is an unbiased estimate of the $Q$ function of the last policy, $Q^{\pi_k}$.
+  \item As $k\to\infty$ for some fixed $B$, $\Q$ is an unbiased estimate of $Q^*$, i.e., $\lim_{k\to\infty} \mathbb{E}\bigl[\Q(s,a)-Q^*(s,a)]=0$.
+  \item In the limit of infinite iterations and data we recover the optimal $Q^*$, i.e., $\lim_{k,B\to\infty}\mathbb{E}\,\bigl[\|\Q-Q^*\|_\infty\bigr]=0$.
+\end{enumerate}
+
+We make the additional assumptions: 
+\begin{itemize}
+	\item The state and action spaces are finite.
+	\item Every batch contains at least one experience for each action taken in each state.
+	\item In the tabular setting, $\Q$ can express any function, i.e., $\{\Q:\phi\in\Phi\}=\mathbb{R}^{S\times A}$.
+\end{itemize}
+When updating the buffer $\D_k$ with $B$ new trajectories in \cref{eq:data} of \Cref{alg:multi}, we say:
+\begin{itemize}
+    \item When learning \textit{on-policy}, $\D_k$ is set to contain only the set of $B$ new rollouts of $\pi$ (so $\lvert \D_k \rvert = B$). Thus, we only train on rollouts from the current policy.
+	\item When learning \textit{off-policy}, we use a fixed dataset $\D_k=\D$ of $B$ trajectories from another policy $\pi'$. 
+\end{itemize}
+
+Indicate which of the statements \textbf{I-III} always hold in the following cases. No justification is required.
+\ifsolutions\solve\thesubsection\else
+\begin{enumerate}
+\item $N=1$ and \ldots \makecols\ncol\heading\choices
+	{} % <--- TODO: select numbers of boxes to fill; e.g., {13} to select I and III
+	{} % <--- TODO: "
+\item $N>1$ and \ldots \choices
+	{} % <--- TODO: "
+	{} % <--- TODO: "
+\item In the limit as $N\to\infty$ (no bootstrapping) \ldots \choices
+	{} % <--- TODO: "
+	{} % <--- TODO: "
+\end{enumerate}
+\fi
+
+\textbf{Solution:}
+好～我们把题目里的三条断言 **I–III**，在 6 个场景（$N{=}1$/$N{>}1$/$N{\to}\infty$ × on/off-policy）**逐一**解释清楚。先回顾三条断言含义：
+
+* **I**：一次更新后，$Q_{\phi_{k+1}}$ 是**上一轮策略** $\pi_k$ 的 $Q^{\pi_k}$ 的**无偏估计**。
+
+* **II**：固定批量大小 $B$，当 $k\to\infty$ 时，$Q_{\phi_k}$ 是 $Q^*$ 的**无偏估计**（$\lim_{k\to\infty}\mathbb E[Q_{\phi_k}-Q^*]=0$）。
+
+* **III**：当 $k,B\to\infty$（无限迭代且每次有无限数据）时，恢复最优 $Q^*$（$\lim_{k,B\to\infty}\mathbb E\|Q_{\phi_k}-Q^*\|_\infty=0$）。
+
+题目假设：**tabular** 表示能力完备；状态动作有限；每个训练 batch 对每个 $(s,a)$ 都有至少一次样本（覆盖性）。
+
+---
+
+预备：几个算子与 N 步目标
+
+* **策略评估算子**：$(\mathcal T^{\pi}Q)(s,a)=r(s,a)+\gamma\,\mathbb E_{s'}\mathbb E_{a'\sim\pi}[Q(s',a')]$
+
+* **最优算子**：$(\mathcal T^*Q)(s,a)=r(s,a)+\gamma\,\mathbb E_{s'}[\max_{a'}Q(s',a')]$（收敛不动点为 $Q^*$）
+
+* **N 步最优 backup**（题里目标）：
+
+  $$
+  y_{t}=\sum_{i=0}^{N-1}\gamma^i r_{t+i}+\gamma^N\max_{a}Q(s_{t+N},a).
+  $$
+
+  on-policy 时，前 $N{-}1$ 步动作来自 $\pi_k$；off-policy 时，来自行为策略 $\pi'$。
+
+要点：只要目标里出现 **$\max$**，它对应的是朝 **最优算子 $\mathcal T^*$** 的更新，而不是对 $\pi_k$ 的评估 $\mathcal T^{\pi_k}$。
+
+在强化学习里，一个策略 π 决定了动作选择方式：
+
+$$
+a_t \sim \pi(\cdot|s_t)
+$$
+
+● on-policy
+
+* 你在学习 $Q^{\pi}$（当前策略的价值函数）。
+* 数据样本也是由同一个策略 π 产生的。
+
+即：
+
+$$
+\text{采样策略} = \text{学习目标策略} = \pi
+$$
+
+举例：
+你用当前的 ε-greedy 策略与环境交互，并用这些数据来更新自己的 Q 值。
+→ 这是 on-policy（比如 **SARSA** 算法）。
+
+---
+
+● off-policy
+
+* 你想学习 $Q^{\pi}$（目标策略的价值函数），
+  但数据是由另一个策略 π′ 产生的。
+
+即：
+
+$$
+\text{采样策略 } \pi' \;\neq\; \text{目标策略 } \pi
+$$
+
+举例：
+你在看别人玩游戏（π′），但你想学习最优策略 π\*。→ 这是 off-policy（比如 **Q-learning** 算法）。
+
+On-policy 更新（例如 SARSA）：
+
+$$
+Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \big[r_t + \gamma Q(s_{t+1}, a_{t+1}) - Q(s_t, a_t)\big]
+$$
+
+👉 下一步动作 $a_{t+1}$ 是按照**当前策略 π** 选的。
+
+---
+
+Off-policy 更新（例如 Q-learning）：
+
+$$
+Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \big[r_t + \gamma \max_{a'} Q(s_{t+1}, a') - Q(s_t, a_t)\big]
+$$
+
+👉 下一步使用 $\max_{a'}$，表示学习的是**最优策略 π\***，
+而不是生成数据的行为策略。
+
+---
+
+1) $N=1$
+
+(a) on-policy（每次用 $\pi_k$ 采样 B 条新轨迹，仅用本次数据训练）
+
+* **I：不成立。** 一步目标是 $r+\gamma\max_{a'}Q_k(s',a')$，这是 $\mathcal T^*Q_k$ 的样本近似，估计的是最优策略而不是上一轮的策略，不是 $\mathcal T^{\pi_k}Q_k$。所以并非在无偏评估 $Q^{\pi_k}$。
+
+* **II：不成立。** $B$ 固定、每次只用当轮有限样本，且目标含 $\max$（**maximization bias**）。即便 $k\to\infty$，“无偏估计 $Q^*$” 太强，$\mathbb{E}[\max_{a'} \hat Q(s', a')] \neq \max_{a'} \mathbb{E}[\hat Q(s', a')]$达不到。
+
+* **III：成立。** 在 tabular + 完全覆盖 + $B\to\infty$ 的极限下，每次 backup 逼近 $\mathcal T^*$，而 $\mathcal T^*$ 在 $\|\cdot\|_\infty$ 下是 $\gamma$-收缩映射，迭代收敛到唯一不动点 $Q^*$。
+
+(b) off-policy（固定一个来自 $\pi'$ 的数据集 $\mathcal D$）
+
+* **I：不成立。** 同上，目标是朝 $\mathcal T^*$ 而非 $\mathcal T^{\pi_k}$；且数据分布与 $\pi_k$ 不同，更不满足“无偏评估 $Q^{\pi_k}$”。
+
+* **II：不成立。** 理由同上。
+
+* **III：不成立。** 如果数据对每个 $(s,a)$ 有覆盖，**Fitted Q-Iteration（FQI）**：$B\to\infty$ 时经验 backup $\to \mathcal T^*$，重复迭代收敛到 $Q^*$（与行为策略无关，因为一步 backup 中并不需要修正分布）。$y_t = r_t + \gamma \max_{a'} Q(s_{t+1}, a')$这个不包含任何来自行为策略 π′ 的动作选择，即时奖励$r_{t}$只由当前动作状态决定和下一个状态$s_{t+1}$是由分布环境$P(s_{t+1}|s_t,a_t)$决定的。但是此处的：Learning off-policy with fixed dataset $\mathcal D$ of $B$ trajectories from another policy $\pi'$，如果数据集$\mathcal D$中没有覆盖所有的$(s,a)$对，那么就无法保证收敛到$Q^*$。因此III不成立。
+
+2) $N>1$（有限多步）
+
+(a) on-policy
+
+* **I：不成立。** 目标：前 $N$ 步是真实回报，但**第 $N$ 步用 $\max$ 自举**，它并非 $\mathcal T^{\pi_k}$（后者应在每一步都对 $\pi_k$ 取期望）。
+
+* **II：不成立。** 依旧是有限样本 + $\max$ 带来的偏差，固定 $B$ 不能保证“无偏到 $Q^*$”。
+
+* **III：成立。** 在 tabular、覆盖且 $B\to\infty$ 的极限下，N 步最优 backup 的期望等价于把 $\mathcal T^*$ 置于第 $N$ 步（可视作 $\gamma^N$-收缩），配合贪心改进形成广义策略迭代，最终收敛到 $Q^*$。
+
+(b) off-policy
+
+* **I：不成立。** 前 $N{-}1$ 步的奖励来自行为策略 $\pi'$ 的轨迹，然而目标要“朝最优”，分布不匹配且无修正，**不是**对 $Q^{\pi_k}$ 的无偏评估。
+
+* **II：不成立。** 同上。
+
+* **III：不成立。** 多步 off-policy **如果不做重要性采样校正**，即使数据无限，也会收敛到错误的固定点（N 步回报混入了 $\pi'$ 的决策），不能保证得到 $Q^*$。
+
+当 $N>1$ 时，
+\[
+y_t^{(N)} = r_t + \gamma r_{t+1} + \cdots + \gamma^{N-1} r_{t+N-1}
++ \gamma^N \max_a Q(s_{t+N}, a)
+\]
+
+\noindent 问题：这些 $r_{t+i}$ 来自谁？
+
+\begin{quote}
+👉 来自行为策略 $\pi'$ 在环境中“连续选择的动作”所产生的轨迹。
+\end{quote}
+
+于是：
+
+\begin{itemize}
+  \item 奖励序列的统计特性取决于 $\pi'$；
+  \item 也就是说，
+  \[
+  \mathbb{E}_{\pi'}[\,r_t + \gamma r_{t+1} + \dots + \gamma^{N-1} r_{t+N-1}\,]
+  \;\neq\;
+  \mathbb{E}_{\pi^*}[\cdots].
+  \]
+\end{itemize}
+
+\noindent 换句话说：
+
+\begin{quote}
+你用 $\pi'$ 的行为轨迹去估计 $\pi^*$ 的未来回报，期望错了。
+\end{quote}
+
+这导致多步目标不再是 $\mathcal{T}^*$ 的期望，而是某个混合算子：
+
+\[
+\tilde{\mathcal{T}}_{N}^{\pi'}(Q)
+= \mathbb{E}_{\pi'}\!\left[
+  \sum_{i=0}^{N-1}\gamma^i r_{t+i}
+  + \gamma^N \max_a Q(s_{t+N}, a)
+\right]
+\]
+
+\noindent 这个算子的固定点不再是 $Q^*$。
+
+---
+
+3) $N\to\infty$（纯 Monte Carlo，无自举）
+
+(a) on-policy
+
+* **I：成立。** 目标就是完整回报 $G_t$；on-policy 下 $\mathbb E[G_t|s,a]=Q^{\pi_k}(s,a)$，MC 评估对 $Q^{\pi_k}$ **无偏**。
+
+* **II：不成立。** 题目要求“固定 $B$”，每轮只用 $B$ 条新样本做评估并立刻贪心改进，带噪声的改进过程不保证“$\lim_{k\to\infty}$ 无偏到 $Q^*$”；这个断言比“收敛”更强，一般不成立。
+
+* **III：成立。** $B\to\infty$ 时，MC 对 $Q^{\pi_k}$ 的估计一致；与贪心改进交替（MC Policy Iteration）在 tabular 下收敛到 $Q^*$。
+
+(b) off-policy
+
+* **I：不成立。** MC **off-policy** 若不做重要性采样，$\mathbb E_{\pi'}[G_t]\neq Q^{\pi_k}$，评估有系统偏差。想得到$Q^{\pi_k}$，必须用但是采样是在$\pi'$下进行的轨迹，需要用重要性采样校正。
+
+* **II：不成立。** 同理上，没有重要性采样校正，MC off-policy 评估有偏差，不能保证无偏到 $Q^*$。
+
+* **III：不成立。** 无 IS 校正时，MC off-policy 不能保证一致性，更谈不上收敛到 $Q^*$。即便 $B \to \infty$、$k \to \infty$，若不做 IS/校正，MC off-policy 的期望指向的不是$\mathbb{E}_{\pi}[\cdot]$，而是 $\mathbb{E}_{\pi'}[\cdot]$。于是它收敛到错误的固定点（反映 $\pi'$ 轨迹的长期回报），不是 $Q^*$，因此 III 不成立。
+
+\subsection{Variance of $Q$ Estimate (2 points)}
+\label{q:variance_estimate}
+Which of the three cases ($N = 1$, $N > 1$, $N \to \infty$) would you expect to have the highest-variance estimate of $Q$ for fixed dataset size $B$ in the limit of infinite iterations $k$? Lowest-variance?
+
+\def\highest{} % <--- TODO: insert index of highest variance answer
+\def\lowest{} % <--- TODO: insert index of lowest variance answer
+\ifsolutions\solve\thesubsection\fi
+\begin{minipage}{0.49\linewidth}
+Highest variance:\smallskip
+\begin{itemize}\itemsep=1ex
+    \checkeditem\highest1 $N = 1$
+    \checkeditem\highest2 $N > 1$
+    \checkeditem\highest3 $N \to \infty$
+\end{itemize}
+\end{minipage}
+\begin{minipage}{0.49\linewidth}
+Lowest variance:\smallskip
+\begin{itemize}\itemsep=1ex
+    \checkeditem\lowest1 $N = 1$
+    \checkeditem\lowest2 $N > 1$
+    \checkeditem\lowest3 $N \to \infty$
+\end{itemize}
+\end{minipage}
+
+
+\textbf{Solution}
+**答案：**
+
+* **Highest variance（方差最高）：** $N \to \infty$
+
+* **Lowest variance（方差最低）：** $N = 1$
+
+**理由（简述）：**
+$N=1$（一步 TD/Q-learning）在目标中立即**自举**，只用当前奖励 $r_t$ 加上 $\gamma \max_a Q(s_{t+1},a)$ 的估计，因而目标的随机成分最少，**方差最低**（但偏差较大）。
+$N\to\infty$（纯 MC）把整条未来回报 $\sum_{i=0}^{T-t-1}\gamma^i r_{t+i}$ 都当作目标，累积了所有随机性（转移、奖励、轨迹长度等），**方差最高**（但无自举偏差）。
+$N>1$ 落在两者之间，方差介于二者之间。固定批量 $B$ 时，即使 $k\to\infty$，每次目标的采样噪声不会消失，因此这种方差排序成立
+
+\subsection{Function Approximation (2 points)}
+\label{q:function_approximation}
+Now say we want to represent $Q$ via function approximation rather than with a tabular representation. Assume that for any deterministic policy $\pi$ (including the optimal policy $\pi^*$), function approximation can represent the true $Q^\pi$ exactly.
+Which of the following statements are true?
+
+\def\answer{} % <--- TODO: insert index of answer(s)
+\ifsolutions\solve\thesubsection\fi
+\begin{itemize}
+    \checkeditem\answer1 When $N = 1$, $Q_{\phi_{k+1}}$ is an unbiased estimate of the $Q$-function of the last policy $Q^{\pi_k}$.
+    \checkeditem\answer2 When $N = 1$ and in the limit as $B\to\infty,\,k \to \infty$, $\Q$ converges to $Q^*$.
+    \checkeditem\answer3 When $N > 1$ (but finite) and in the limit as $B\to\infty,\,k \to \infty$, $\Q$ converges to $Q^*$.
+    \checkeditem\answer4 When $N \to \infty$ and in the limit as $B \to \infty,\,k \to \infty$, $\Q$ converges to $Q^*$.
+\end{itemize}
+
+\textbf{Solution:}
+
+现在我们希望通过**函数逼近（function approximation）**来表示 $Q$，
+而不是使用**表格型表示（tabular representation）**。
+
+假设：
+对于任意一个确定性策略 $\pi$（包括最优策略 $\pi^*$），
+函数逼近器都可以**精确地表示该策略的 Q 函数 $Q^\pi$**。
+
+问：以下哪些陈述是正确的？
+
+---
+
+**表格型表示（tabular representation）是啥？**
+
+* “Tabular” = “表格式”。
+
+* 表示你直接为每个状态–动作对 $(s,a)$ 存一个值。
+  即：
+
+  $$
+  Q(s,a) \text{ 被存成一个表格 } \mathbb{R}^{|S|\times|A|}
+  $$
+
+  状态空间有限，动作空间有限。
+
+* “Function approximation” 则是：
+
+  $$
+  Q_\phi(s,a) = f_\phi(s,a)
+  $$
+
+  用参数（如神经网络）表示函数，而不是直接存表。
+
+✅ 选项 1
+
+> 当 $N=1$ 时，$Q_{\phi_{k+1}}$ 是上一次策略的 $Q^{\pi_k}$ 的无偏估计。
+
+👉 这是 **错误的（❌）**。
+因为 $N=1$ 的更新（Q-learning）使用的是
+
+$$
+y_t = r_t + \gamma \max_{a'} Q(s_{t+1},a')
+$$
+
+这对应 **Bellman 最优算子 $\mathcal T^*$**，
+不是 $\mathcal T^{\pi_k}$（策略评估算子）。
+
+换句话说：
+
+* 目标是改进策略（learn $Q^*$），
+* 不是评估上一个策略，
+* 所以它对 $Q^{\pi_k}$ 来说是有偏的。
+
+✅ **结论：不成立。**
+
+---
+
+✅ 选项 2
+
+> 当 $N=1$，且当 $B\to\infty, k\to\infty$ 时，$Q_{\phi_k}$ 收敛到 $Q^*$。
+
+→ **正确（✅）**
+
+解释：
+
+* $N=1$ 表示标准 Q-learning；
+* 有无限数据（B→∞）与无限迭代（k→∞）；
+* 又假设函数逼近可以精确表达真实 Q；
+* 因为 $\mathcal T^*$ 是 γ 收缩映射；
+* 所以理论上 $Q_{\phi_k}\to Q^*$。
+
+✅ **结论：成立。**
+
+---
+
+✅ 选项 3
+
+> 当 $N>1$（但有限），且 $B\to\infty, k\to\infty$ 时，$Q_{\phi_k}$ 收敛到 $Q^*$。
+
+→ **错误（❌）**
+
+解释：
+
+* 对于多步 $N>1$ 的情况，
+  前 N−1 步用真实样本奖励，最后一步自举；
+* 这意味着更新对应的算子不再是严格的 $\mathcal T^*$；
+* 而是一个“混合”算子，通常会带有 **bootstrapping bias**；
+* 即使有无限数据，也不保证完全无偏。
+
+✅ **结论：不成立。**
+
+---
+
+✅ 选项 4
+
+> 当 $N\to\infty$，且 $B\to\infty, k\to\infty$ 时，$Q_{\phi_k}$ 收敛到 $Q^*$。
+
+→ **正确（✅）**
+
+解释：
+
+* $N\to\infty$ 表示完全展开回报（Monte Carlo）；
+* 如果是 on-policy；
+* 则回报期望 = 策略真实回报；
+* 每次更新后又做贪心改进（policy improvement）；
+* 所以和 Monte Carlo Policy Iteration 等价；
+* 在无限数据与完美逼近下，收敛到最优 $Q^*$。
+
+✅ **结论：成立。**
+
+\subsection{Multistep Importance Sampling (5 points)}
+\label{q:importance_sampling}
+
+We can use importance sampling to make the $N$-step update work off-policy with trajectories drawn from an arbitrary policy. Rewrite \eqref{eq:q_update} to correctly approximate a $\Q$ that improves upon $\pi$ when it is trained on data $\D$ consisting of $B$ rollouts of some other policy $\pi'(\mathbf a_t\mid\mathbf s_t)$. 
+
+Do we need to change \eqref{eq:q_update} when $N=1$? What about as $N\to\infty$? 
+
+You may assume that $\pi'$ always assigns positive mass to each action. [Hint: re-weight each term in the sum using a ratio of likelihoods from the policies $\pi$ and $\pi'$.]
+
+ 
+\ifsolutions\solve\thesubsection\else
+% TODO: answer question above
+\fi
+
+\endgroup
+
+\textbf{Solution:}
+
+设**目标策略**为 $\pi$（我们希望学习/改进它），
+**行为策略**为 $\pi'$（数据来自它），并令
+
+$$
+\rho_{t}\;\triangleq\;\frac{\pi(a_t\mid s_t)}{\pi'(a_t\mid s_t)}\;>0\qquad(\text{题目已给正概率假设})
+$$
+
+对每条轨迹的任意起点 $t$，**N 步 off-policy 目标（带逐步重要性采样，per–decision IS）** 为：
+
+$$
+\boxed{
+y^{(N)}_{t,\text{IS}}
+=
+\sum_{i=0}^{N-1}\Bigg(\;\gamma^i \prod_{j=0}^{i-1}\rho_{t+j}\Bigg)\, r_{t+i}
+\;+\;
+\gamma^N \Bigg(\prod_{j=0}^{N-1}\rho_{t+j}\Bigg)\,
+\max_{a}Q(s_{t+N},a)
+}
+$$
+
+（约定空乘积 $\prod_{j=0}^{-1}(\cdot)=1$。若在 $t+N$ 前终止，最后一项去掉/视为 0。）
+
+然后把 $\,y^{(N)}_{t,\text{IS}}$ 代入原来的回归式（eq. (2)）：
+
+$$
+\phi_{k+1} \;=\; \arg\min_{\phi\in\Phi}\sum_{(j,t)}
+\Big(y^{(N)}_{j,t,\text{IS}}-Q_\phi(s_{j,t},a_{j,t})\Big)^2.
+$$
+
+> 直观：前 $N$ 步的每一段回报都用对应长度的**权重乘积** $\prod\rho$ 进行校正，使样本在期望上从 $\pi'$ 的分布“重权”成 $\pi$ 的分布；第 $N$ 步的自举项同样乘上长度为 $N$ 的乘积。
+
+---
+
+N=1 / N→∞ 是否需要改？
+
+1) **N=1：不需要改**（off-policy 安全）
+
+$$
+y^{(1)}_{t}=r_t+\gamma \max_{a} Q(s_{t+1},a)
+$$
+
+这一步目标与 $\pi'$ 的下一步动作无关（直接取 $\max$），因此**无需 IS 权重**；这就是一步 Q-learning 能 off-policy 的原因。
+
+2) **$N\to\infty$**（纯 Monte Carlo）：**需要改**
+
+此时目标是整条回报：
+
+$$
+y^{(\infty)}_{t,\text{IS}}
+=\sum_{i=0}^{T-t-1}\Bigg(\gamma^i\prod_{j=0}^{i-1}\rho_{t+j}\Bigg)\,r_{t+i}
+$$
+
+（无自举项）。
+没有这些 $\prod\rho$ 的话就是在 $\pi'$ 上求期望，**偏离目标策略 $\pi$**；加入 IS 后才在期望上等于 $\mathbb{E}_\pi[G_t]$。注意这会显著**增大方差**。
+
+
+
